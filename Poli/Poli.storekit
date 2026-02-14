@@ -1,0 +1,154 @@
+{
+  "identifier" : "5B5FE6A0-POLI-STORE-CONFIG",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "0",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : null,
+    "_locale" : "fr",
+    "_storefront" : "FRA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "poli_subscriptions",
+      "localizations" : [
+        {
+          "description" : "Poli subscription plans",
+          "displayName" : "Poli",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "Abonnements Poli",
+          "displayName" : "Poli",
+          "locale" : "fr"
+        }
+      ],
+      "name" : "Poli",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "poli_starter_monthly_001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "50 corrections and translations per day",
+              "displayName" : "Poli Starter",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "50 corrections et traductions par jour",
+              "displayName" : "Poli Starter",
+              "locale" : "fr"
+            }
+          ],
+          "productID" : "com.poli.starter.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Poli Starter Monthly",
+          "subscriptionGroupID" : "poli_subscriptions",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "19.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "poli_pro_monthly_001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "500 corrections and translations per day",
+              "displayName" : "Poli Pro",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "500 corrections et traductions par jour",
+              "displayName" : "Poli Pro",
+              "locale" : "fr"
+            }
+          ],
+          "productID" : "com.poli.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Poli Pro Monthly",
+          "subscriptionGroupID" : "poli_subscriptions",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
