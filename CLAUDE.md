@@ -1,94 +1,88 @@
-# Poli — Guide d'implémentation pour Claude Code
+# CLAUDE.md
 
-## Projet
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Poli** est une application macOS menu bar de correction grammaticale et traduction instantanée, propulsée par l'API Claude (Anthropic).
+## Project Overview
+
+Poli is a **macOS menu bar application** for AI-powered grammar correction and text translation. It runs as a status bar item with a floating popover UI (360x480) and global keyboard shortcuts. All AI processing happens server-side via a Laravel backend.
+
+## Build & Run
+
+- **Open in Xcode**: `open Poli.xcodeproj`
+- **Build**: Cmd+B in Xcode, or `xcodebuild -project Poli.xcodeproj -scheme Poli build`
+- **Run**: Cmd+R in Xcode
+- **Target**: macOS 13+ only
+- **Dependencies**: SPM only — resolved automatically by Xcode (HotKey package for global shortcuts)
+- **No tests exist** in the project currently
+
+## Debug vs Production
+
+The API base URL switches via `#if DEBUG` in `Poli/Utils/Constants.swift`:
+- Debug: `https://poli.test` (local Laravel backend)
+- Production: `https://api.poli.app/v1`
 
 ## Architecture
 
-### App macOS (`Poli/`)
-- **Langage** : Swift 5.9+
-- **UI** : SwiftUI + AppKit (NSStatusItem, NSPopover)
-- **Architecture** : MVVM + Services
-- **Persistence** : SwiftData
-- **OS minimum** : macOS 14 Sonoma
-- **Bundle ID** : `com.poli`
-- **Distribution** : Mac App Store (sandboxed)
+**Service-Oriented Architecture** with SwiftUI views. Not strict MVVM — most state lives in singleton services.
 
-### Backend (`backend/`)
-- **Framework** : Laravel (PHP)
-- **AI Pipeline** : deepset Haystack (Python microservice)
-- **Rôle** : Proxy API Claude, gestion comptes/abonnements, historique, rate limiting
-- **L'app macOS ne contacte JAMAIS directement l'API Anthropic** — tout passe par le backend
+### Key Layers
 
-## Fichiers clés
+1. **App Layer** (`Poli/App/`): `PoliApp.swift` is the `@main` entry. `AppDelegate` orchestrates the menu bar, popover, hotkeys, and action flows (correction/translation). `AppState` is an `@Observable` class holding transient UI state (loading, results, errors).
 
-### App macOS
-- `Poli/App/PoliApp.swift` — Point d'entrée (@main), pas de WindowGroup (menu bar only)
-- `Poli/App/AppDelegate.swift` — NSStatusItem + NSPopover + raccourcis globaux
-- `Poli/App/AppState.swift` — État global @Observable
-- `Poli/Services/` — Services métier (Clipboard, HotKey, AI, Paste, Notification)
-- `Poli/Models/` — Modèles SwiftData + enums
-- `Poli/Views/` — Vues SwiftUI (Popover, History, Settings, Paywall, Onboarding)
-- `Poli/Subscription/` — StoreKit 2 (StoreManager, EntitlementManager)
+2. **Services** (`Poli/Services/`): All singletons via `static let shared`. This is where most business logic lives:
+   - `AIService` — HTTP client for backend `/api/correct` and `/api/translate` endpoints. Bearer token auth from Keychain.
+   - `AuthManager` — Login/register/logout, token persistence, user profile sync.
+   - `GrammarService` / `TranslationService` — High-level wrappers that validate input (length, emptiness) before calling AIService.
+   - `ClipboardService` — Reads/writes pasteboard. `getSelectedText()` simulates Cmd+C via AppleScript (requires Accessibility permission).
+   - `HotKeyService` — Global shortcuts via HotKey SPM package. Defaults: Option+Shift+C (correct), Option+Shift+T (translate).
+   - `UsageTracker` — Caches `remaining_actions` from backend. Backend is source of truth; never incremented locally.
+   - `HistoryManager` — CRUD operations on correction/translation history via backend API.
 
-### Backend Laravel
-- `backend/routes/api.php` — Routes API
-- `backend/app/Http/Controllers/` — Controllers (Auth, Correction, Translation, Subscription)
-- `backend/app/Services/` — Services métier (AnthropicService, HaystackService)
+3. **Subscription** (`Poli/Subscription/`): StoreKit 2 integration. `StoreManager` handles purchases; `EntitlementManager` determines the active tier (free/starter/pro) by merging StoreKit and backend state. Unsynced transactions are persisted in UserDefaults and retried on launch.
 
-## Conventions de code
+4. **Views** (`Poli/Views/`): SwiftUI views. `PopoverView` is the main 4-tab interface (Correction, Translation, History, Settings). Components in `Views/Components/`.
 
-### Swift
-- Utiliser `async/await` partout (pas de callbacks/Combine)
-- Services en singleton via `static let shared`
-- État partagé via `@Observable` (pas ObservableObject, on est sur macOS 14+)
-- Erreurs typées avec `enum PoliError: LocalizedError`
-- Clé API dans le Keychain via `KeychainHelper`
-- Localisation : FR + EN via `Localizable.xcstrings`
+5. **Models** (`Poli/Models/`): Codable data structures — `SupportedLanguage` (20 languages with flags), `SubscriptionTier`, `HistoryEntry`, `PoliError`.
 
-### Laravel/PHP
-- PSR-12 coding standard
-- Form Requests pour la validation
-- Resources pour les réponses API
-- Sanctum pour l'authentification API
+### Important Patterns
 
-## Raccourcis clavier globaux
-- `Option+Shift+C` (⌥⇧C) — Correction grammaticale
-- `Option+Shift+T` (⌥⇧T) — Traduction
+- **`@Observable` macro** (not Combine's `@Published`) for reactive state — requires Swift 5.9+/macOS 14 observation.
+- **Backend as source of truth** for usage limits and subscription tier. Local caches are only for instant UI display.
+- **Keychain** for auth token storage (`com.poli` service name).
+- **UserDefaults** for preferences, cached tier, hotkey bindings, onboarding state.
+- **Localization**: `.xcstrings` format with English and French. Use `String(localized: "key")`.
 
-## Flux principal
-1. Utilisateur copie du texte (Cmd+C)
-2. Appuie sur raccourci Poli
-3. App lit le presse-papier
-4. Envoie au backend Laravel → Haystack → API Claude
-5. Résultat copié dans le presse-papier
-6. Auto-paste si champ texte actif (Accessibility API)
-7. Notification de confirmation
+### Action Flow (Correction/Translation via Hotkey)
 
-## Modèle économique
-- **Free** : 10 actions/jour, 4 langues (FR/EN/ES/DE), historique 7 jours
-- **Pro** (4.99/mois ou 29.99/an) : illimité, 20+ langues, historique illimité, modèle Sonnet
+`AppDelegate.handleCorrection()` → `ClipboardService.getSelectedText()` → `EntitlementManager.canPerformAction()` → `GrammarService.correct()` → `AIService.correctGrammar()` → `ClipboardService.write()` → `PasteService.pasteIfTextFieldActive()` → `ResultBanner.show()`
 
-## Phases d'implémentation
-1. Fondations (Menu Bar + Clipboard + Raccourcis)
-2. Moteur IA (API Claude via backend)
-3. UX Complète (Popover + Notifications + Auto-paste)
-4. Historique & Persistence (SwiftData)
-5. Monétisation (StoreKit 2)
-6. Polish, Localisation & Soumission
+### Menu Bar Behavior
 
-## Couleurs
-- Primaire : `#5B5FE6` (indigo)
-- Secondaire : `#9B6FE8` (violet)
-- Succès : `#34C759` (vert)
-- Erreur : `#FF3B30` (rouge)
-- Warning : `#F5A623` (orange)
+The app uses `.accessory` activation policy (no Dock icon) by default. It switches to `.regular` (shows in Dock) only when a settings or onboarding window is open, then back to `.accessory` when closed.
 
-## Points d'attention
-- `LSUIElement = YES` dans Info.plist (pas d'icône Dock)
-- Sandbox obligatoire pour le Mac App Store
-- Entitlement `com.apple.security.network.client` pour les appels réseau
-- L'auto-paste via CGEvent nécessite les permissions Accessibility
-- Ne JAMAIS hardcoder de clé API dans le binaire
-- Tester sur macOS 14 Sonoma ET macOS 15 Sequoia
+## Backend API Endpoints
+
+All requests use Bearer token auth and JSON content type.
+
+- `POST /api/auth/login`, `/register`, `/logout` — Auth
+- `GET /api/auth/me` — Current user profile
+- `POST /api/correct` — Grammar correction
+- `POST /api/translate` — Translation
+- `POST /api/subscription/verify` — StoreKit transaction verification
+- `GET /api/history` — Fetch history
+- `PATCH /api/history/{type}/{id}/favorite` — Toggle favorite
+- `DELETE /api/history/{type}/{id}` — Delete entry
+
+Every response may include `remaining_actions` which is always synced to `UsageTracker`.
+
+## Entitlements
+
+The app requires two entitlements (`Poli/Poli.entitlements`):
+- `com.apple.security.network.client` — Network access
+- `com.apple.security.automation.apple-events` — AppleScript for Cmd+C simulation (get selected text)
+
+## StoreKit Products
+
+Defined in `Poli.storekit`:
+- `com.poli.starter.monthly` — Starter tier ($4.99/month)
+- `com.poli.pro.monthly` — Pro tier ($19.99/month)

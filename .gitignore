@@ -1,9 +1,16 @@
-# macOS
-.DS_Store
-*.swp
-*~
+# Xcode user data
+xcuserdata/
+*.xcuserstate
 
-# IDE
-.idea/
-.vscode/
-*.sublime-*
+# Build
+DerivedData/
+build/
+
+# SPM
+.build/
+.swiftpm/
+
+# Code coverage
+*.gcda
+*.gcno
+*.profdata
