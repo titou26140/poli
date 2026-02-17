@@ -155,7 +155,7 @@ final class AuthManager: ObservableObject {
         isLoading = false
     }
 
-    /// Signs out the user and removes the stored token.
+    /// Signs out the user, clears all caches, and closes the settings window.
     func logout() async {
         isLoading = true
 
@@ -167,6 +167,11 @@ final class AuthManager: ObservableObject {
         isAuthenticated = false
         errorMessage = nil
         isLoading = false
+
+        EntitlementManager.shared.reset()
+
+        // Close the settings window so the popover shows the login view.
+        NotificationCenter.default.post(name: .closeSettings, object: nil)
     }
 
     /// Fetches the current user profile from the backend.
@@ -206,43 +211,28 @@ final class AuthManager: ObservableObject {
     // MARK: - Private Helpers
 
     private func syncEntitlements(from user: User) {
-        // Derive tier from the backend's "tier" field (free/starter/pro).
-        let backendTier: SubscriptionTier
+        // Backend is the single source of truth for tier and usage.
+        let tier: SubscriptionTier
         if let tierString = user.tier {
-            backendTier = SubscriptionTier.from(backendPlan: tierString)
+            tier = SubscriptionTier.from(backendPlan: tierString)
         } else {
-            backendTier = (user.isPro ?? false) ? .pro : .free
+            tier = (user.isPro ?? false) ? .pro : .free
         }
 
-        // Check actual StoreKit purchases (not the cached tier in EntitlementManager).
-        let purchasedIDs = StoreManager.shared.purchasedProductIDs
-        let storeKitTier: SubscriptionTier
-        if purchasedIDs.contains(StoreManager.ProductID.proMonthly) {
-            storeKitTier = .pro
-        } else if purchasedIDs.contains(StoreManager.ProductID.starterMonthly) {
-            storeKitTier = .starter
-        } else {
-            storeKitTier = .free
-        }
-
-        // Use the highest tier between StoreKit (local) and backend.
-        let effectiveTier = storeKitTier.usageLimit >= backendTier.usageLimit ? storeKitTier : backendTier
-        let remaining = user.remainingActions ?? effectiveTier.usageLimit
-
-        // Parse subscription status and dates from backend.
+        let remaining = user.remainingActions ?? tier.usageLimit
         let subscriptionStatus = SubscriptionStatus(rawValue: user.status ?? "") ?? .none
         let expiresAt = user.expiresAt.flatMap { Self.isoFormatter.date(from: $0) }
         let cancelledAt = user.cancelledAt.flatMap { Self.isoFormatter.date(from: $0) }
 
         EntitlementManager.shared.updateFromBackend(
-            tier: effectiveTier,
+            tier: tier,
             remainingActions: remaining,
             status: subscriptionStatus,
             expiresAt: expiresAt,
             cancelledAt: cancelledAt
         )
         #if DEBUG
-        print("[AuthManager] syncEntitlements: backend=\(backendTier.rawValue), storeKit=\(storeKitTier.rawValue), effective=\(effectiveTier.rawValue), remaining=\(remaining), status=\(subscriptionStatus.rawValue)")
+        print("[AuthManager] syncEntitlements: tier=\(tier.rawValue), remaining=\(remaining), status=\(subscriptionStatus.rawValue)")
         #endif
     }
 }

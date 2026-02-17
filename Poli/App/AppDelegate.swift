@@ -139,6 +139,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         NotificationCenter.default.addObserver(
             self,
+            selector: #selector(closeSettingsWindow),
+            name: .closeSettings,
+            object: nil
+        )
+
+        NotificationCenter.default.addObserver(
+            self,
             selector: #selector(handleOnboardingCompleted),
             name: .onboardingCompleted,
             object: nil
@@ -186,6 +193,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     // MARK: - Settings Window
+
+    @objc private func closeSettingsWindow() {
+        settingsWindow?.close()
+    }
 
     @objc private func openSettings() {
         closePopover()

@@ -76,6 +76,7 @@ final class StoreManager: ObservableObject {
         let plan: String
         let expiresAt: String
         let usageLimit: Int
+        let remainingActions: Int?
         let message: String
         let status: String?
         let cancelledAt: String?
@@ -262,7 +263,7 @@ final class StoreManager: ObservableObject {
 
                 EntitlementManager.shared.updateFromBackend(
                     tier: tier,
-                    remainingActions: verifyResponse.usageLimit,
+                    remainingActions: verifyResponse.remainingActions ?? verifyResponse.usageLimit,
                     status: subscriptionStatus,
                     expiresAt: expiresAtDate,
                     cancelledAt: cancelledAt
