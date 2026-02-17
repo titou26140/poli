@@ -30,7 +30,9 @@ struct PaywallView: View {
                 VStack(spacing: 28) {
                     header
 
-                    if entitlementManager.isPaid {
+                    if entitlementManager.isCancelledButActive {
+                        cancelledButActiveView
+                    } else if entitlementManager.isPaid {
                         alreadySubscribedView
                     } else {
                         comparisonTable
@@ -102,6 +104,32 @@ struct PaywallView: View {
             Text("paywall.subtitle")
                 .font(.system(size: 14))
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - Cancelled But Active
+
+    private var cancelledButActiveView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "arrow.triangle.2.circlepath")
+                .font(.system(size: 48))
+                .foregroundStyle(.yellow)
+
+            Text("paywall.cancelled_active.title")
+                .font(.system(size: 16, weight: .semibold))
+                .multilineTextAlignment(.center)
+
+            if let expiresFormatted = entitlementManager.expiresAtFormatted {
+                Text(String(format: String(localized: "paywall.cancelled_active.message"), expiresFormatted))
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            comparisonTable
+            planSelector
+            subscribeButton
+            restoreLink
         }
     }
 

@@ -51,7 +51,9 @@ final class ClipboardService {
         script?.executeAndReturnError(&error)
 
         if let error {
+            #if DEBUG
             print("[Clipboard] System Events error: \(error[NSAppleScript.errorBriefMessage] ?? error)")
+            #endif
             return nil
         }
 
@@ -60,12 +62,16 @@ final class ClipboardService {
             try? await Task.sleep(nanoseconds: 50_000_000) // 50ms
             if pasteboard.changeCount != previousChangeCount {
                 let text = readIfAvailable()
+                #if DEBUG
                 print("[Clipboard] Got selected text (\(text?.count ?? 0) chars)")
+                #endif
                 return text
             }
         }
 
+        #if DEBUG
         print("[Clipboard] Pasteboard did not change after Cmd+C")
+        #endif
         return nil
     }
 
@@ -76,11 +82,15 @@ final class ClipboardService {
         for _ in 0..<20 { // up to 1s (20 × 50ms)
             let currentFlags = CGEventSource.flagsState(.hidSystemState)
             if currentFlags.intersection(modifiersToCheck).isEmpty {
+                #if DEBUG
                 print("[Clipboard] Modifiers released")
+                #endif
                 return
             }
             try? await Task.sleep(nanoseconds: 50_000_000) // 50ms
         }
+        #if DEBUG
         print("[Clipboard] Warning: modifiers still held after 1s, proceeding anyway")
+        #endif
     }
 }

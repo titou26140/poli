@@ -74,6 +74,8 @@ final class StoreManager: ObservableObject {
         let expiresAt: String
         let usageLimit: Int
         let message: String
+        let status: String?
+        let cancelledAt: String?
     }
 
     // MARK: - Init
@@ -103,7 +105,9 @@ final class StoreManager: ObservableObject {
             // Sort so Starter (cheaper) appears first.
             products = storeProducts.sorted { $0.price < $1.price }
         } catch {
+            #if DEBUG
             print("[StoreManager] Failed to load products: \(error)")
+            #endif
         }
     }
 
@@ -137,7 +141,9 @@ final class StoreManager: ObservableObject {
                 return false
             }
         } catch {
+            #if DEBUG
             print("[StoreManager] Purchase failed: \(error)")
+            #endif
             return false
         }
     }
@@ -158,7 +164,9 @@ final class StoreManager: ObservableObject {
                 }
             }
         } catch {
+            #if DEBUG
             print("[StoreManager] Restore failed: \(error)")
+            #endif
         }
     }
 
@@ -167,19 +175,27 @@ final class StoreManager: ObservableObject {
     func updatePurchasedProducts() async {
         var purchased: Set<String> = []
 
+        #if DEBUG
         print("[StoreManager] Checking currentEntitlements...")
+        #endif
 
         for await result in Transaction.currentEntitlements {
             switch result {
             case .verified(let transaction):
+                #if DEBUG
                 print("[StoreManager] Found entitlement: \(transaction.productID), revocationDate: \(String(describing: transaction.revocationDate)), expirationDate: \(String(describing: transaction.expirationDate))")
+                #endif
                 purchased.insert(transaction.productID)
             case .unverified(let transaction, let error):
+                #if DEBUG
                 print("[StoreManager] Unverified entitlement: \(transaction.productID), error: \(error)")
+                #endif
             }
         }
 
+        #if DEBUG
         print("[StoreManager] Purchased products after check: \(purchased)")
+        #endif
         purchasedProductIDs = purchased
     }
 
@@ -204,7 +220,9 @@ final class StoreManager: ObservableObject {
     func syncTransactionWithBackend(_ transaction: Transaction) async {
         guard let token = KeychainHelper.shared.read(key: Constants.keychainAuthTokenKey),
               !token.isEmpty else {
+            #if DEBUG
             print("[StoreManager] No auth token — skipping backend sync")
+            #endif
             persistUnsyncedTransaction(
                 transactionID: String(transaction.id),
                 originalTransactionID: String(transaction.originalID),
@@ -236,9 +254,13 @@ final class StoreManager: ObservableObject {
                 request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
                 request.httpBody = try JSONEncoder().encode(requestBody)
 
+                #if DEBUG
                 print("[API] POST \(url.absoluteString)")
+                #endif
                 let (data, response) = try await session.data(for: request)
+                #if DEBUG
                 print("[API] Response: \(String(data: data, encoding: .utf8) ?? "<binary>")")
+                #endif
 
                 guard let httpResponse = response as? HTTPURLResponse else {
                     throw PoliError.networkError("Reponse serveur invalide.")
@@ -254,19 +276,32 @@ final class StoreManager: ObservableObject {
                 let verifyResponse = try decoder.decode(VerifyResponse.self, from: data)
 
                 let tier = SubscriptionTier.from(backendPlan: verifyResponse.tier)
+                let subscriptionStatus = SubscriptionStatus(rawValue: verifyResponse.status ?? "") ?? .active
+                let isoFormatter = ISO8601DateFormatter()
+                isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                let cancelledAt = verifyResponse.cancelledAt.flatMap { isoFormatter.date(from: $0) }
+                let expiresAtDate = isoFormatter.date(from: verifyResponse.expiresAt)
+
                 EntitlementManager.shared.updateFromBackend(
                     tier: tier,
-                    remainingActions: verifyResponse.usageLimit
+                    remainingActions: verifyResponse.usageLimit,
+                    status: subscriptionStatus,
+                    expiresAt: expiresAtDate,
+                    cancelledAt: cancelledAt
                 )
 
                 removeUnsyncedTransaction(transactionID: String(transaction.id))
 
+                #if DEBUG
                 print("[StoreManager] Backend sync successful: \(verifyResponse.plan)")
+                #endif
                 return
 
             } catch {
                 lastError = error
+                #if DEBUG
                 print("[StoreManager] Backend sync attempt \(attempt + 1)/\(maxRetries) failed: \(error)")
+                #endif
 
                 if attempt < maxRetries - 1 {
                     let delay = UInt64(pow(2.0, Double(attempt))) * 1_000_000_000
@@ -281,7 +316,9 @@ final class StoreManager: ObservableObject {
             originalTransactionID: String(transaction.originalID),
             productID: transaction.productID
         )
+        #if DEBUG
         print("[StoreManager] Backend sync failed after \(maxRetries) attempts, persisted for retry")
+        #endif
     }
 
     // MARK: - Unsynced Transaction Persistence
@@ -327,7 +364,9 @@ final class StoreManager: ObservableObject {
         guard !unsynced.isEmpty else { return }
         guard KeychainHelper.shared.read(key: Constants.keychainAuthTokenKey) != nil else { return }
 
+        #if DEBUG
         print("[StoreManager] Retrying \(unsynced.count) unsynced transaction(s)")
+        #endif
 
         for await result in Transaction.currentEntitlements {
             if let transaction = checkVerified(result) {
@@ -344,7 +383,9 @@ final class StoreManager: ObservableObject {
     private func checkVerified(_ result: VerificationResult<Transaction>) -> Transaction? {
         switch result {
         case .unverified(_, let error):
+            #if DEBUG
             print("[StoreManager] Unverified transaction: \(error)")
+            #endif
             return nil
         case .verified(let transaction):
             return transaction

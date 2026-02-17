@@ -62,3 +62,20 @@ enum SubscriptionTier: String, Codable, CaseIterable {
         return .free
     }
 }
+
+/// Represents the subscription lifecycle status from the backend.
+enum SubscriptionStatus: String, Codable {
+    case active
+    case gracePeriod = "grace_period"
+    case cancelled
+    case expired
+    case none
+
+    /// Whether this status grants premium access.
+    var hasPremiumAccess: Bool {
+        switch self {
+        case .active, .gracePeriod, .cancelled: return true
+        case .expired, .none: return false
+        }
+    }
+}

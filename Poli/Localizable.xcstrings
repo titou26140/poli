@@ -3510,6 +3510,38 @@
         }
       }
     },
+    "paywall.cancelled_active.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your current plan remains active until %@. You can resubscribe now to avoid any interruption."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre plan actuel reste actif jusqu'au %@. Vous pouvez vous réabonner maintenant pour éviter toute interruption."
+          }
+        }
+      }
+    },
+    "paywall.cancelled_active.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your subscription has been cancelled"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre abonnement a été annulé"
+          }
+        }
+      }
+    },
     "paywall.error" : {
       "localizations" : {
         "en" : {
@@ -4678,6 +4710,40 @@
         }
       }
     },
+    "settings.about.contact" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contact us"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contáctenos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nous contacter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contattaci"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contacte-nos"
+          }
+        }
+      }
+    },
     "settings.about.privacy" : {
       "localizations" : {
         "en" : {
@@ -4848,6 +4914,38 @@
         }
       }
     },
+    "settings.account.cancelled" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelled"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annulé"
+          }
+        }
+      }
+    },
+    "settings.account.cancelled_message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your subscription will not renew. Access until %@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre abonnement ne sera pas renouvelé. Accès jusqu'au %@."
+          }
+        }
+      }
+    },
     "settings.account.current_plan" : {
       "localizations" : {
         "en" : {
@@ -4916,6 +5014,22 @@
         }
       }
     },
+    "settings.account.grace_period_message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A payment issue is being resolved."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un problème de paiement est en cours de résolution."
+          }
+        }
+      }
+    },
     "settings.account.logout" : {
       "localizations" : {
         "en" : {
@@ -4946,6 +5060,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sair"
+          }
+        }
+      }
+    },
+    "settings.account.payment_issue" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payment issue"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Problème de paiement"
           }
         }
       }

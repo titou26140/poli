@@ -82,13 +82,17 @@ final class HistoryManager {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
+        #if DEBUG
         print("[API] \(method) \(url.absoluteString)")
+        #endif
         let data: Data
         let response: URLResponse
 
         do {
             (data, response) = try await session.data(for: request)
+            #if DEBUG
             print("[API] Response: \(String(data: data, encoding: .utf8) ?? "<binary>")")
+            #endif
         } catch let urlError as URLError {
             switch urlError.code {
             case .timedOut:

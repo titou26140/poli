@@ -20,12 +20,14 @@ final class NotificationService {
     /// once during app launch or onboarding.
     func setup() {
         center.requestAuthorization(options: [.alert, .sound]) { granted, error in
+            #if DEBUG
             if let error = error {
                 print("[NotificationService] Authorization error: \(error.localizedDescription)")
             }
             if granted {
                 print("[NotificationService] Notification permission granted.")
             }
+            #endif
         }
     }
 
@@ -49,9 +51,11 @@ final class NotificationService {
         )
 
         center.add(request) { error in
+            #if DEBUG
             if let error = error {
                 print("[NotificationService] Failed to send notification: \(error.localizedDescription)")
             }
+            #endif
         }
     }
 }

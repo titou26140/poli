@@ -114,13 +114,7 @@ struct SettingsView: View {
                 Spacer()
 
                 if entitlementManager.isPaid {
-                    Label("settings.account.active", systemImage: "checkmark.seal.fill")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.green)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(Color.green.opacity(0.12))
-                        .clipShape(Capsule())
+                    subscriptionStatusBadge
                 } else {
                     Button {
                         showPaywall = true
@@ -145,6 +139,17 @@ struct SettingsView: View {
                     .buttonStyle(.plain)
                     .focusable(false)
                 }
+            }
+
+            // Contextual message for grace period or cancelled status
+            if entitlementManager.isInGracePeriod {
+                Text("settings.account.grace_period_message")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.orange)
+            } else if entitlementManager.isCancelledButActive {
+                Text(String(format: String(localized: "settings.account.cancelled_message"), entitlementManager.expiresAtFormatted ?? ""))
+                    .font(.system(size: 11))
+                    .foregroundStyle(.yellow)
             }
 
             HStack {
@@ -409,7 +414,9 @@ struct SettingsView: View {
                 try SMAppService.mainApp.unregister()
             }
         } catch {
+            #if DEBUG
             print("[Settings] Launch at login error: \(error)")
+            #endif
             // Revert le toggle si l'operation a echoue.
             launchAtLogin = SMAppService.mainApp.status == .enabled
         }
@@ -437,7 +444,7 @@ struct SettingsView: View {
             }
             .padding(.vertical, 4)
 
-            Link(destination: URL(string: "https://poli.app/privacy")!) {
+            Link(destination: URL(string: "https://poli-app.com/en/privacy")!) {
                 HStack {
                     Text("settings.about.privacy")
                         .font(.system(size: 13))
@@ -449,12 +456,24 @@ struct SettingsView: View {
             }
             .focusable(false)
 
-            Link(destination: URL(string: "https://poli.app/terms")!) {
+            Link(destination: URL(string: "https://poli-app.com/en/terms")!) {
                 HStack {
                     Text("settings.about.terms")
                         .font(.system(size: 13))
                     Spacer()
                     Image(systemName: "arrow.up.right.square")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .focusable(false)
+
+            Link(destination: URL(string: "mailto:contact@poli-app.com")!) {
+                HStack {
+                    Text("settings.about.contact")
+                        .font(.system(size: 13))
+                    Spacer()
+                    Image(systemName: "envelope")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }
@@ -476,6 +495,38 @@ struct SettingsView: View {
             .focusable(false)
         } header: {
             Text("settings.about.header")
+        }
+    }
+
+    // MARK: - Subscription Status Badge
+
+    @ViewBuilder
+    private var subscriptionStatusBadge: some View {
+        switch entitlementManager.subscriptionStatus {
+        case .gracePeriod:
+            Label("settings.account.payment_issue", systemImage: "exclamationmark.triangle.fill")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.orange)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Color.orange.opacity(0.12))
+                .clipShape(Capsule())
+        case .cancelled:
+            Label("settings.account.cancelled", systemImage: "xmark.circle.fill")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.yellow)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Color.yellow.opacity(0.12))
+                .clipShape(Capsule())
+        default:
+            Label("settings.account.active", systemImage: "checkmark.seal.fill")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.green)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Color.green.opacity(0.12))
+                .clipShape(Capsule())
         }
     }
 

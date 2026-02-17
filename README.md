@@ -52,7 +52,19 @@ open Poli.xcodeproj
 
 Les dépendances SPM (HotKey) sont résolues automatiquement par Xcode.
 
-Build et run avec **Cmd+B** puis **Cmd+R**.
+Build et run avec **Cmd+B** puis **Cmd+R**. Le scheme **Poli-Local** est sélectionné par défaut pour le développement.
+
+## Environnements
+
+Le projet dispose de 3 schemes Xcode, chacun pointant vers un backend différent :
+
+| Scheme | Environnement | URL Backend |
+|---|---|---|
+| **Poli-Local** | Développement local | `https://poli.test` |
+| **Poli-Staging** | Staging | `https://staging.poli-app.com` |
+| **Poli-Prod** | Production | `https://poli-app.com` |
+
+La sélection se fait via le sélecteur de scheme dans Xcode (à gauche du bouton Run). La configuration est gérée par des flags de compilation Swift (`DEBUG`, `STAGING`) dans `Poli/Utils/Constants.swift`.
 
 ## Permissions requises
 
@@ -69,13 +81,6 @@ L'application demande deux permissions au premier lancement via un onboarding gu
 - **HotKey** (SPM) — Raccourcis clavier globaux
 - **URLSession** — Communication avec le backend REST
 - **Keychain** — Stockage sécurisé du token d'authentification
-
-## Configuration
-
-L'URL du backend est définie dans `Poli/Utils/Constants.swift` :
-
-- **Debug** : `https://poli.test` (backend local)
-- **Production** : `https://api.poli.app/v1`
 
 ## Localisation
 

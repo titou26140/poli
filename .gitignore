@@ -1,16 +1,42 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
 # Xcode user data
 xcuserdata/
 *.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xccheckout
+*.xcscmblueprint
 
 # Build
 DerivedData/
 build/
+*.ipa
+*.dSYM.zip
+*.dSYM
 
 # SPM
 .build/
 .swiftpm/
+Package.resolved
 
 # Code coverage
 *.gcda
 *.gcno
 *.profdata
+
+# Archives
+*.xcarchive
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Misc
+*.moved-aside
+*.hmap
+*.swp
+*~

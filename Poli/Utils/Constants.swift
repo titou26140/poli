@@ -35,18 +35,21 @@ enum Constants {
     // MARK: - Networking
 
     /// Base URL for the Poli backend API.
+    /// Determined by build configuration: Debug → local, Staging → staging, Release → production.
     static let apiBaseURL: URL = {
         #if DEBUG
         return URL(string: "https://poli.test")!
+        #elseif STAGING
+        return URL(string: "https://staging.poli-app.com")!
         #else
-        return URL(string: "https://api.poli.app/v1")!
+        return URL(string: "https://poli-app.com")!
         #endif
     }()
 
     // MARK: - Bundle
 
     /// The application bundle identifier.
-    static let bundleIdentifier = "com.poli"
+    static let bundleIdentifier = "com.poli-app.poli"
 
     // MARK: - UserDefaults Keys
 
@@ -58,6 +61,7 @@ enum Constants {
         static let lifetimeUsageCount = "lifetimeUsageCount"
         static let unsyncedTransactionIDs = "unsyncedTransactionIDs"
         static let cachedSubscriptionTier = "cachedSubscriptionTier"
+        static let cachedSubscriptionStatus = "cachedSubscriptionStatus"
         static let cachedRemainingActions = "cachedRemainingActions"
         static let userLanguage = "userLanguage"
         static let correctionShortcutKeyCode = "correctionShortcutKeyCode"

@@ -711,7 +711,9 @@ struct OnboardingView: View {
                     }
                 }
             } catch {
+                #if DEBUG
                 print("[Onboarding] Notification permission error: \(error)")
+                #endif
             }
         }
     }

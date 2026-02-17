@@ -9,17 +9,21 @@ Poli is a **macOS menu bar application** for AI-powered grammar correction and t
 ## Build & Run
 
 - **Open in Xcode**: `open Poli.xcodeproj`
-- **Build**: Cmd+B in Xcode, or `xcodebuild -project Poli.xcodeproj -scheme Poli build`
+- **Build**: Cmd+B in Xcode, or `xcodebuild -project Poli.xcodeproj -scheme Poli-Local build`
 - **Run**: Cmd+R in Xcode
 - **Target**: macOS 13+ only
 - **Dependencies**: SPM only — resolved automatically by Xcode (HotKey package for global shortcuts)
 - **No tests exist** in the project currently
 
-## Debug vs Production
+## Environments
 
-The API base URL switches via `#if DEBUG` in `Poli/Utils/Constants.swift`:
-- Debug: `https://poli.test` (local Laravel backend)
-- Production: `https://api.poli.app/v1`
+3 Xcode schemes control the target environment via Swift compilation conditions (`#if DEBUG` / `#elseif STAGING`) in `Poli/Utils/Constants.swift`:
+
+| Scheme | Build Config | Flag | API Base URL |
+|---|---|---|---|
+| **Poli-Local** | Debug | `DEBUG` | `https://poli.test` |
+| **Poli-Staging** | Staging | `STAGING` | `https://staging.poli-app.com` |
+| **Poli-Prod** | Release | *(none)* | `https://poli-app.com` |
 
 ## Architecture
 

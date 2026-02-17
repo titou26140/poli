@@ -17,9 +17,11 @@ final class PasteService {
             """)
             var error: NSDictionary?
             script?.executeAndReturnError(&error)
+            #if DEBUG
             if let error {
                 print("[Paste] System Events error: \(error[NSAppleScript.errorBriefMessage] ?? error)")
             }
+            #endif
         }
     }
 }

@@ -47,6 +47,9 @@ final class AuthManager: ObservableObject {
         let remainingActions: Int?
         let usageLimit: Int?
         let isLifetimeLimit: Bool?
+        let status: String?
+        let expiresAt: String?
+        let cancelledAt: String?
         // No CodingKeys needed — the decoder uses .convertFromSnakeCase
         // which automatically maps remaining_actions → remainingActions, etc.
     }
@@ -155,9 +158,13 @@ final class AuthManager: ObservableObject {
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Accept")
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            #if DEBUG
             print("[API] POST \(url.absoluteString)")
+            #endif
             if let (data, _) = try? await session.data(for: request) {
+                #if DEBUG
                 print("[API] Response: \(String(data: data, encoding: .utf8) ?? "<binary>")")
+                #endif
             }
         }
 
@@ -182,9 +189,13 @@ final class AuthManager: ObservableObject {
             request.setValue("application/json", forHTTPHeaderField: "Accept")
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
+            #if DEBUG
             print("[API] GET \(url.absoluteString)")
+            #endif
             let (data, response) = try await session.data(for: request)
+            #if DEBUG
             print("[API] Response: \(String(data: data, encoding: .utf8) ?? "<binary>")")
+            #endif
 
             guard let httpResponse = response as? HTTPURLResponse else { return }
 
@@ -239,8 +250,24 @@ final class AuthManager: ObservableObject {
         // Use the highest tier between StoreKit (local) and backend.
         let effectiveTier = storeKitTier.usageLimit >= backendTier.usageLimit ? storeKitTier : backendTier
         let remaining = user.remainingActions ?? effectiveTier.usageLimit
-        EntitlementManager.shared.updateFromBackend(tier: effectiveTier, remainingActions: remaining)
-        print("[AuthManager] syncEntitlements: backend=\(backendTier.rawValue), storeKit=\(storeKitTier.rawValue), effective=\(effectiveTier.rawValue), remaining=\(remaining)")
+
+        // Parse subscription status and dates from backend.
+        let subscriptionStatus = SubscriptionStatus(rawValue: user.status ?? "") ?? .none
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let expiresAt = user.expiresAt.flatMap { isoFormatter.date(from: $0) }
+        let cancelledAt = user.cancelledAt.flatMap { isoFormatter.date(from: $0) }
+
+        EntitlementManager.shared.updateFromBackend(
+            tier: effectiveTier,
+            remainingActions: remaining,
+            status: subscriptionStatus,
+            expiresAt: expiresAt,
+            cancelledAt: cancelledAt
+        )
+        #if DEBUG
+        print("[AuthManager] syncEntitlements: backend=\(backendTier.rawValue), storeKit=\(storeKitTier.rawValue), effective=\(effectiveTier.rawValue), remaining=\(remaining), status=\(subscriptionStatus.rawValue)")
+        #endif
     }
 
     private func performRequest<RequestBody: Encodable, ResponseBody: Decodable>(
@@ -254,13 +281,17 @@ final class AuthManager: ObservableObject {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.httpBody = try encoder.encode(body)
 
+        #if DEBUG
         print("[API] \(method) \(url.absoluteString)")
+        #endif
         let data: Data
         let response: URLResponse
 
         do {
             (data, response) = try await session.data(for: request)
+            #if DEBUG
             print("[API] Response: \(String(data: data, encoding: .utf8) ?? "<binary>")")
+            #endif
         } catch let urlError as URLError {
             switch urlError.code {
             case .notConnectedToInternet, .networkConnectionLost:
