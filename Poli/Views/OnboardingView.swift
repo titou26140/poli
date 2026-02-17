@@ -16,9 +16,6 @@ struct OnboardingView: View {
 
     // MARK: - Constants
 
-    private let primaryColor = Color(red: 0x5B / 255.0, green: 0x5F / 255.0, blue: 0xE6 / 255.0)
-    private let secondaryColor = Color(red: 0x9B / 255.0, green: 0x6F / 255.0, blue: 0xE8 / 255.0)
-    private let successColor = Color(red: 0x34 / 255.0, green: 0xC7 / 255.0, blue: 0x59 / 255.0)
     private let warningColor = Color(red: 0xF5 / 255.0, green: 0xA6 / 255.0, blue: 0x23 / 255.0)
     private let totalSteps = 6
 
@@ -29,6 +26,8 @@ struct OnboardingView: View {
     @State private var selectedTargetLanguage: SupportedLanguage = .english
     @State private var accessibilityGranted: Bool = AXIsProcessTrusted()
     @State private var notificationsGranted: Bool = false
+    @State private var accessibilityCheckTask: Task<Void, Never>?
+    @State private var notificationTask: Task<Void, Never>?
 
     @AppStorage(Constants.UserDefaultsKey.targetLanguage)
     private var targetLanguageCode: String = Constants.defaultTargetLanguage.rawValue
@@ -68,25 +67,17 @@ struct OnboardingView: View {
         .frame(width: 520, height: 620)
         .background(
             ZStack {
-                LinearGradient(
-                    colors: [
-                        primaryColor.opacity(0.06),
-                        secondaryColor.opacity(0.03),
-                        Color.clear
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+                Color.clear
 
                 // Decorative blobs
                 Circle()
-                    .fill(primaryColor.opacity(0.05))
+                    .fill(Color.poliPrimary.opacity(0.05))
                     .frame(width: 300, height: 300)
                     .offset(x: -180, y: -150)
                     .blur(radius: 60)
 
                 Circle()
-                    .fill(secondaryColor.opacity(0.04))
+                    .fill(Color.poliSecondary.opacity(0.04))
                     .frame(width: 250, height: 250)
                     .offset(x: 200, y: 180)
                     .blur(radius: 50)
@@ -103,6 +94,10 @@ struct OnboardingView: View {
             }
             await checkNotificationStatus()
         }
+        .onDisappear {
+            accessibilityCheckTask?.cancel()
+            notificationTask?.cancel()
+        }
     }
 
     // MARK: - Step 1: Welcome
@@ -114,11 +109,11 @@ struct OnboardingView: View {
             // Mascot
             ZStack {
                 Circle()
-                    .fill(primaryColor.opacity(0.08))
+                    .fill(Color.poliPrimary.opacity(0.08))
                     .frame(width: 160, height: 160)
 
                 Circle()
-                    .fill(primaryColor.opacity(0.04))
+                    .fill(Color.poliPrimary.opacity(0.04))
                     .frame(width: 190, height: 190)
 
                 Image("Mascot")
@@ -137,7 +132,7 @@ struct OnboardingView: View {
                         .foregroundStyle(.secondary)
                     Text("Poli")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(primaryColor)
+                        .foregroundStyle(Color.poliPrimary)
                 }
             }
 
@@ -183,7 +178,7 @@ struct OnboardingView: View {
                     number: "2",
                     title: String(localized: "onboarding.how.step2.title"),
                     subtitle: String(localized: "onboarding.how.step2.subtitle"),
-                    color: primaryColor
+                    color: .poliPrimary
                 )
 
                 Image(systemName: "chevron.down")
@@ -195,7 +190,7 @@ struct OnboardingView: View {
                     number: "3",
                     title: String(localized: "onboarding.how.step3.title"),
                     subtitle: String(localized: "onboarding.how.step3.subtitle"),
-                    color: successColor
+                    color: .poliSuccess
                 )
             }
 
@@ -274,10 +269,10 @@ struct OnboardingView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 18))
-                        .foregroundStyle(successColor)
+                        .foregroundStyle(Color.poliSuccess)
                     Text("onboarding.accessibility.granted")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(successColor)
+                        .foregroundStyle(Color.poliSuccess)
                 }
                 .padding(.top, 4)
             } else {
@@ -293,15 +288,8 @@ struct OnboardingView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 28)
                     .padding(.vertical, 12)
-                    .background(
-                        LinearGradient(
-                            colors: [primaryColor, secondaryColor],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .background(Color.poliPrimary)
                     .clipShape(Capsule())
-                    .shadow(color: primaryColor.opacity(0.3), radius: 8, y: 4)
                 }
                 .buttonStyle(.plain)
                 .focusable(false)
@@ -362,10 +350,10 @@ struct OnboardingView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 18))
-                        .foregroundStyle(successColor)
+                        .foregroundStyle(Color.poliSuccess)
                     Text("onboarding.notifications.enabled")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(successColor)
+                        .foregroundStyle(Color.poliSuccess)
                 }
                 .padding(.top, 4)
             } else {
@@ -381,15 +369,8 @@ struct OnboardingView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 28)
                     .padding(.vertical, 12)
-                    .background(
-                        LinearGradient(
-                            colors: [primaryColor, secondaryColor],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .background(Color.poliPrimary)
                     .clipShape(Capsule())
-                    .shadow(color: primaryColor.opacity(0.3), radius: 8, y: 4)
                 }
                 .buttonStyle(.plain)
                 .focusable(false)
@@ -507,11 +488,11 @@ struct OnboardingView: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? primaryColor.opacity(0.12) : Color.primary.opacity(0.03))
+                    .fill(isSelected ? Color.poliPrimary.opacity(0.12) : Color.primary.opacity(0.03))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? primaryColor : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? .poliPrimary : Color.clear, lineWidth: 2)
             )
             .overlay(alignment: .topTrailing) {
                 if showLockIcons && !isFree {
@@ -531,7 +512,7 @@ struct OnboardingView: View {
     private func permissionStatusBadge(granted: Bool, emoji: String, grantedText: String, missingText: String) -> some View {
         ZStack {
             Circle()
-                .fill(granted ? successColor.opacity(0.1) : warningColor.opacity(0.1))
+                .fill(granted ? Color.poliSuccess.opacity(0.1) : warningColor.opacity(0.1))
                 .frame(width: 100, height: 100)
 
             VStack(spacing: 6) {
@@ -544,10 +525,10 @@ struct OnboardingView: View {
                     Text(granted ? grantedText : missingText)
                         .font(.system(size: 10, weight: .semibold))
                 }
-                .foregroundStyle(granted ? successColor : warningColor)
+                .foregroundStyle(granted ? .poliSuccess : warningColor)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
-                .background((granted ? successColor : warningColor).opacity(0.1))
+                .background((granted ? .poliSuccess : warningColor).opacity(0.1))
                 .clipShape(Capsule())
             }
         }
@@ -610,7 +591,7 @@ struct OnboardingView: View {
             HStack(spacing: 6) {
                 ForEach(0..<totalSteps, id: \.self) { index in
                     Capsule()
-                        .fill(index == currentStep ? primaryColor : Color.primary.opacity(0.12))
+                        .fill(index == currentStep ? .poliPrimary : Color.primary.opacity(0.12))
                         .frame(width: index == currentStep ? 20 : 7, height: 7)
                         .animation(.spring(duration: 0.3), value: currentStep)
                 }
@@ -631,7 +612,7 @@ struct OnboardingView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 9)
-                    .background(primaryColor)
+                    .background(Color.poliPrimary)
                     .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -647,15 +628,8 @@ struct OnboardingView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 9)
-                    .background(
-                        LinearGradient(
-                            colors: [primaryColor, secondaryColor],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .background(Color.poliPrimary)
                     .clipShape(Capsule())
-                    .shadow(color: primaryColor.opacity(0.3), radius: 6, y: 3)
                 }
                 .buttonStyle(.plain)
                 .focusable(false)
@@ -679,14 +653,13 @@ struct OnboardingView: View {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
         AXIsProcessTrustedWithOptions(options)
 
-        // Poll for the user granting permission in System Preferences.
-        Task {
-            for _ in 0..<30 {
+        accessibilityCheckTask?.cancel()
+        accessibilityCheckTask = Task {
+            for _ in 0..<120 {
                 try? await Task.sleep(for: .seconds(1))
+                guard !Task.isCancelled else { return }
                 if AXIsProcessTrusted() {
-                    await MainActor.run {
-                        withAnimation { accessibilityGranted = true }
-                    }
+                    withAnimation { accessibilityGranted = true }
                     return
                 }
             }
@@ -694,21 +667,17 @@ struct OnboardingView: View {
     }
 
     private func requestNotifications() {
-        Task {
+        notificationTask?.cancel()
+        notificationTask = Task {
             let center = UNUserNotificationCenter.current()
             do {
                 let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-                await MainActor.run {
-                    withAnimation { notificationsGranted = granted }
-                    if granted {
-                        // Auto-advance after a short delay.
-                        Task {
-                            try? await Task.sleep(for: .milliseconds(800))
-                            await MainActor.run {
-                                withAnimation(.easeInOut(duration: 0.25)) { currentStep += 1 }
-                            }
-                        }
-                    }
+                guard !Task.isCancelled else { return }
+                withAnimation { notificationsGranted = granted }
+                if granted {
+                    try? await Task.sleep(for: .milliseconds(800))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.easeInOut(duration: 0.25)) { currentStep += 1 }
                 }
             } catch {
                 #if DEBUG

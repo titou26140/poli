@@ -29,11 +29,11 @@ struct UsageMeter: View {
     private var barColor: Color {
         switch progress {
         case ..<0.5:
-            return Color(red: 0.204, green: 0.780, blue: 0.349) // #34C759
+            return .poliSuccess
         case 0.5..<0.8:
             return Color(red: 0.961, green: 0.651, blue: 0.137) // #F5A623
         default:
-            return Color(red: 1.0, green: 0.231, blue: 0.188)   // #FF3B30
+            return .poliError
         }
     }
 
@@ -60,12 +60,12 @@ struct UsageMeter: View {
                     Text(tier.displayName)
                         .font(.caption2)
                         .fontWeight(.semibold)
-                        .foregroundStyle(Color(red: 0.357, green: 0.373, blue: 0.902))
+                        .foregroundStyle(Color.poliPrimary)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
                             Capsule()
-                                .fill(Color(red: 0.357, green: 0.373, blue: 0.902).opacity(0.1))
+                                .fill(Color.poliPrimary.opacity(0.1))
                         )
                 }
             }

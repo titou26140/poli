@@ -17,11 +17,6 @@ struct PaywallView: View {
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
 
-    // MARK: - Colors
-
-    private let primaryColor = Color(red: 0x5B / 255.0, green: 0x5F / 255.0, blue: 0xE6 / 255.0)
-    private let secondaryColor = Color(red: 0x9B / 255.0, green: 0x6F / 255.0, blue: 0xE8 / 255.0)
-
     // MARK: - Body
 
     var body: some View {
@@ -45,17 +40,7 @@ struct PaywallView: View {
             }
         }
         .frame(width: 440, height: 620)
-        .background(
-            LinearGradient(
-                colors: [
-                    primaryColor.opacity(0.05),
-                    secondaryColor.opacity(0.03),
-                    Color.clear
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
+        .background(Color.poliPrimary.opacity(0.04))
         .alert(String(localized: "paywall.error"), isPresented: $showError) {
             Button("OK") {}
         } message: {
@@ -83,19 +68,10 @@ struct PaywallView: View {
 
             // Icon
             ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [primaryColor, secondaryColor],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                Image("Mascot")
+                    .resizable()
+                    .scaledToFit()
                     .frame(width: 64, height: 64)
-
-                Image(systemName: "sparkles")
-                    .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(.white)
             }
 
             Text("paywall.title")
@@ -159,13 +135,7 @@ struct PaywallView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
                     .foregroundStyle(.white)
-                    .background(
-                        LinearGradient(
-                            colors: [primaryColor, secondaryColor],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .background(Color.poliPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             .buttonStyle(.plain)
@@ -205,10 +175,10 @@ struct PaywallView: View {
             tierCell(value: free, color: .secondary)
                 .frame(maxWidth: .infinity)
 
-            tierCell(value: starter, color: primaryColor)
+            tierCell(value: starter, color: .poliPrimary)
                 .frame(maxWidth: .infinity)
 
-            tierCell(value: pro, color: secondaryColor)
+            tierCell(value: pro, color: .poliSecondary)
                 .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, 12)
@@ -247,11 +217,11 @@ struct PaywallView: View {
                     .frame(maxWidth: .infinity)
                 Text("Starter")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(primaryColor)
+                    .foregroundStyle(Color.poliPrimary)
                     .frame(maxWidth: .infinity)
                 Text("Pro")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(secondaryColor)
+                    .foregroundStyle(Color.poliSecondary)
                     .frame(maxWidth: .infinity)
             }
             .padding(.bottom, 4)
@@ -281,13 +251,7 @@ struct PaywallView: View {
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(
-                                    LinearGradient(
-                                        colors: [primaryColor, secondaryColor],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
+                                .background(Color.poliSecondary)
                                 .clipShape(Capsule())
                         }
                     }
@@ -304,7 +268,7 @@ struct PaywallView: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(product.displayPrice)
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(isSelected ? primaryColor : .primary)
+                        .foregroundStyle(isSelected ? Color.poliPrimary : Color.primary)
                     Text("paywall.per_month")
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
@@ -313,12 +277,12 @@ struct PaywallView: View {
             .padding(14)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? primaryColor.opacity(0.08) : Color.primary.opacity(0.03))
+                    .fill(isSelected ? Color.poliPrimary.opacity(0.08) : Color.primary.opacity(0.03))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(
-                        isSelected ? primaryColor : Color.primary.opacity(0.1),
+                        isSelected ? Color.poliPrimary : Color.primary.opacity(0.1),
                         lineWidth: isSelected ? 2 : 1
                     )
             )
@@ -354,13 +318,7 @@ struct PaywallView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 44)
             .foregroundStyle(.white)
-            .background(
-                LinearGradient(
-                    colors: [primaryColor, secondaryColor],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
+            .background(Color.poliPrimary)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)

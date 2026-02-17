@@ -25,7 +25,7 @@ struct ShortcutRecorderView: View {
                 startRecording()
             }
         } label: {
-            Text(isRecording ? "Appuyez sur un raccourci..." : displayText)
+            Text(isRecording ? String(localized: "shortcut.recording_prompt") : displayText)
                 .font(.system(
                     size: 13,
                     weight: isRecording ? .regular : .semibold,
@@ -37,14 +37,14 @@ struct ShortcutRecorderView: View {
                 .background(
                     RoundedRectangle(cornerRadius: 6)
                         .fill(isRecording
-                              ? Color(red: 0x5B / 255.0, green: 0x5F / 255.0, blue: 0xE6 / 255.0).opacity(0.1)
+                              ? Color.poliPrimary.opacity(0.1)
                               : Color.primary.opacity(0.06))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
                         .strokeBorder(
                             isRecording
-                                ? Color(red: 0x5B / 255.0, green: 0x5F / 255.0, blue: 0xE6 / 255.0)
+                                ? Color.poliPrimary
                                 : Color.clear,
                             lineWidth: 1.5
                         )

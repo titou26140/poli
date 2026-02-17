@@ -71,8 +71,6 @@ final class LoaderPanel {
 private struct LoaderContentView: View {
     let message: String
 
-    private let primaryColor = Color(red: 0.357, green: 0.373, blue: 0.902)
-
     var body: some View {
         HStack(spacing: 10) {
             ProgressView()

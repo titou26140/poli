@@ -168,12 +168,16 @@ final class EntitlementManager: ObservableObject {
     }
 
     /// Formatted expiration date for display, or nil if unavailable.
+    private static let expiresDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .long
+        f.timeStyle = .none
+        return f
+    }()
+
     var expiresAtFormatted: String? {
         guard let expiresAt else { return nil }
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        formatter.timeStyle = .none
-        return formatter.string(from: expiresAt)
+        return Self.expiresDateFormatter.string(from: expiresAt)
     }
 
     // MARK: - Private Helpers

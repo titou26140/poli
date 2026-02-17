@@ -27,18 +27,21 @@ struct DiffTextView: View {
     let original: String
     let corrected: String
 
-    var body: some View {
-        let segments = computeWordDiff(original: original, corrected: corrected)
-        let attributed = buildAttributedString(from: segments)
+    @State private var attributedDiff = AttributedString()
 
+    var body: some View {
         ScrollView {
-            Text(attributed)
+            Text(attributedDiff)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(12)
         }
         .background(Color(nsColor: .controlBackgroundColor))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .task(id: original + corrected) {
+            let segments = computeWordDiff(original: original, corrected: corrected)
+            attributedDiff = buildAttributedString(from: segments)
+        }
     }
 
     // MARK: - Attributed String Builder
@@ -54,13 +57,12 @@ struct DiffTextView: View {
                 part.foregroundColor = .primary
 
             case .removed:
-                part.foregroundColor = Color(hex: "FF3B30")
+                part.foregroundColor = .poliError
                 part.strikethroughStyle = .single
-                // Strikethrough color follows foregroundColor
 
             case .added:
-                part.foregroundColor = Color(hex: "34C759")
-                part.backgroundColor = Color(hex: "34C759").opacity(0.12)
+                part.foregroundColor = .poliSuccess
+                part.backgroundColor = Color.poliSuccess.opacity(0.12)
             }
 
             result.append(part)
@@ -143,26 +145,6 @@ func computeWordDiff(original: String, corrected: String) -> [DiffSegment] {
     }
 
     return merged
-}
-
-// MARK: - Color Hex Initializer
-
-private extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let r, g, b: Double
-        switch hex.count {
-        case 6:
-            r = Double((int >> 16) & 0xFF) / 255
-            g = Double((int >> 8) & 0xFF) / 255
-            b = Double(int & 0xFF) / 255
-        default:
-            r = 1; g = 1; b = 1
-        }
-        self.init(red: r, green: g, blue: b)
-    }
 }
 
 // MARK: - Preview

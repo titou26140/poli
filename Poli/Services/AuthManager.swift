@@ -23,18 +23,22 @@ final class AuthManager: ObservableObject {
 
     // MARK: - Private
 
-    private let baseURL: URL = Constants.apiBaseURL
-    private let session: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
-        return URLSession(configuration: config)
-    }()
-    private let decoder: JSONDecoder = {
+    private var sessionRestoreTask: Task<Void, Never>?
+
+    /// AuthManager uses `.convertFromSnakeCase` for its response DTOs
+    /// (e.g. `remaining_actions` -> `remainingActions`), unlike the default
+    /// decoder in ``APIClient``.
+    private let snakeCaseDecoder: JSONDecoder = {
         let d = JSONDecoder()
         d.keyDecodingStrategy = .convertFromSnakeCase
         return d
     }()
-    private let encoder = JSONEncoder()
+
+    private static let isoFormatter: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
 
     // MARK: - DTOs
 
@@ -51,7 +55,7 @@ final class AuthManager: ObservableObject {
         let expiresAt: String?
         let cancelledAt: String?
         // No CodingKeys needed — the decoder uses .convertFromSnakeCase
-        // which automatically maps remaining_actions → remainingActions, etc.
+        // which automatically maps remaining_actions -> remainingActions, etc.
     }
 
     private struct LoginRequest: Encodable {
@@ -75,11 +79,6 @@ final class AuthManager: ObservableObject {
         let user: User
     }
 
-    private struct APIErrorBody: Decodable {
-        let message: String?
-        let errors: [String: [String]]?
-    }
-
     // MARK: - Init
 
     private init() {
@@ -92,9 +91,10 @@ final class AuthManager: ObservableObject {
     /// triggering a keychain prompt before the user expects it.
     func restoreSession() {
         guard !isAuthenticated else { return }
+        sessionRestoreTask?.cancel()
         if let token = KeychainHelper.shared.read(key: Constants.keychainAuthTokenKey), !token.isEmpty {
             isAuthenticated = true
-            Task { await fetchCurrentUser() }
+            sessionRestoreTask = Task { await fetchCurrentUser() }
         }
     }
 
@@ -106,9 +106,13 @@ final class AuthManager: ObservableObject {
         errorMessage = nil
 
         do {
-            let url = baseURL.appendingPathComponent("api/auth/login")
             let body = LoginRequest(email: email, password: password)
-            let response: AuthResponse = try await performRequest(url: url, method: "POST", body: body)
+            let response: AuthResponse = try await APIClient.shared.request(
+                path: "api/auth/login",
+                body: body,
+                authenticated: false,
+                decoder: snakeCaseDecoder
+            )
 
             KeychainHelper.shared.save(key: Constants.keychainAuthTokenKey, value: response.token)
             currentUser = response.user
@@ -127,14 +131,18 @@ final class AuthManager: ObservableObject {
         errorMessage = nil
 
         do {
-            let url = baseURL.appendingPathComponent("api/auth/register")
             let body = RegisterRequest(
                 name: name,
                 email: email,
                 password: password,
                 password_confirmation: passwordConfirmation
             )
-            let response: AuthResponse = try await performRequest(url: url, method: "POST", body: body)
+            let response: AuthResponse = try await APIClient.shared.request(
+                path: "api/auth/register",
+                body: body,
+                authenticated: false,
+                decoder: snakeCaseDecoder
+            )
 
             KeychainHelper.shared.save(key: Constants.keychainAuthTokenKey, value: response.token)
             currentUser = response.user
@@ -152,21 +160,7 @@ final class AuthManager: ObservableObject {
         isLoading = true
 
         // Best-effort server-side logout; ignore errors.
-        if let token = KeychainHelper.shared.read(key: Constants.keychainAuthTokenKey) {
-            let url = baseURL.appendingPathComponent("api/auth/logout")
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Accept")
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            #if DEBUG
-            print("[API] POST \(url.absoluteString)")
-            #endif
-            if let (data, _) = try? await session.data(for: request) {
-                #if DEBUG
-                print("[API] Response: \(String(data: data, encoding: .utf8) ?? "<binary>")")
-                #endif
-            }
-        }
+        _ = try? await APIClient.shared.requestData(method: "POST", path: "api/auth/logout")
 
         KeychainHelper.shared.delete(key: Constants.keychainAuthTokenKey)
         currentUser = nil
@@ -183,45 +177,29 @@ final class AuthManager: ObservableObject {
         }
 
         do {
-            let url = baseURL.appendingPathComponent("api/auth/me")
-            var request = URLRequest(url: url)
-            request.httpMethod = "GET"
-            request.setValue("application/json", forHTTPHeaderField: "Accept")
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-            #if DEBUG
-            print("[API] GET \(url.absoluteString)")
-            #endif
-            let (data, response) = try await session.data(for: request)
-            #if DEBUG
-            print("[API] Response: \(String(data: data, encoding: .utf8) ?? "<binary>")")
-            #endif
-
-            guard let httpResponse = response as? HTTPURLResponse else { return }
-
-            if httpResponse.statusCode == 401 {
-                // Token expired or invalid — clean up.
-                KeychainHelper.shared.delete(key: Constants.keychainAuthTokenKey)
-                isAuthenticated = false
-                currentUser = nil
-                return
-            }
-
-            guard (200...299).contains(httpResponse.statusCode) else { return }
+            let data = try await APIClient.shared.requestData(method: "GET", path: "api/auth/me")
 
             // Try decoding as { user: {...} } first, then as direct User object.
-            if let userResponse = try? decoder.decode(UserResponse.self, from: data) {
+            if let userResponse = try? snakeCaseDecoder.decode(UserResponse.self, from: data) {
                 currentUser = userResponse.user
             } else {
-                currentUser = try decoder.decode(User.self, from: data)
+                currentUser = try snakeCaseDecoder.decode(User.self, from: data)
             }
             isAuthenticated = true
 
             if let user = currentUser {
                 syncEntitlements(from: user)
             }
+        } catch let error as PoliError {
+            if case .unauthorized = error {
+                // Token expired or invalid -- clean up.
+                KeychainHelper.shared.delete(key: Constants.keychainAuthTokenKey)
+                isAuthenticated = false
+                currentUser = nil
+            }
+            // Other errors: keep current auth state silently.
         } catch {
-            // Network error during fetch — keep current auth state but don't crash.
+            // Network error during fetch -- keep current auth state.
         }
     }
 
@@ -253,10 +231,8 @@ final class AuthManager: ObservableObject {
 
         // Parse subscription status and dates from backend.
         let subscriptionStatus = SubscriptionStatus(rawValue: user.status ?? "") ?? .none
-        let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let expiresAt = user.expiresAt.flatMap { isoFormatter.date(from: $0) }
-        let cancelledAt = user.cancelledAt.flatMap { isoFormatter.date(from: $0) }
+        let expiresAt = user.expiresAt.flatMap { Self.isoFormatter.date(from: $0) }
+        let cancelledAt = user.cancelledAt.flatMap { Self.isoFormatter.date(from: $0) }
 
         EntitlementManager.shared.updateFromBackend(
             tier: effectiveTier,
@@ -268,57 +244,5 @@ final class AuthManager: ObservableObject {
         #if DEBUG
         print("[AuthManager] syncEntitlements: backend=\(backendTier.rawValue), storeKit=\(storeKitTier.rawValue), effective=\(effectiveTier.rawValue), remaining=\(remaining), status=\(subscriptionStatus.rawValue)")
         #endif
-    }
-
-    private func performRequest<RequestBody: Encodable, ResponseBody: Decodable>(
-        url: URL,
-        method: String,
-        body: RequestBody
-    ) async throws -> ResponseBody {
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.httpBody = try encoder.encode(body)
-
-        #if DEBUG
-        print("[API] \(method) \(url.absoluteString)")
-        #endif
-        let data: Data
-        let response: URLResponse
-
-        do {
-            (data, response) = try await session.data(for: request)
-            #if DEBUG
-            print("[API] Response: \(String(data: data, encoding: .utf8) ?? "<binary>")")
-            #endif
-        } catch let urlError as URLError {
-            switch urlError.code {
-            case .notConnectedToInternet, .networkConnectionLost:
-                throw PoliError.networkError("Pas de connexion internet.")
-            case .timedOut:
-                throw PoliError.networkError("La requete a expire. Reessayez.")
-            default:
-                throw PoliError.networkError(urlError.localizedDescription)
-            }
-        }
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw PoliError.networkError("Reponse serveur invalide.")
-        }
-
-        guard (200...299).contains(httpResponse.statusCode) else {
-            let errorBody = try? JSONDecoder().decode(APIErrorBody.self, from: data)
-            let message: String
-            if let validationErrors = errorBody?.errors {
-                // Flatten validation errors into a single string.
-                message = validationErrors.values.flatMap { $0 }.joined(separator: "\n")
-            } else {
-                message = errorBody?.message ?? "Erreur inattendue (HTTP \(httpResponse.statusCode))."
-            }
-            throw PoliError.apiError(statusCode: httpResponse.statusCode, message: message)
-        }
-
-        return try decoder.decode(ResponseBody.self, from: data)
     }
 }

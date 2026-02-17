@@ -13,6 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var popover: NSPopover!
     private var settingsWindow: NSWindow?
     private var onboardingWindow: NSWindow?
+    private var clickOutsideMonitor: Any?
 
     /// Shared application state, passed to SwiftUI views.
     let appState = AppState()
@@ -38,6 +39,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         HotKeyService.shared.unregister()
+        NotificationCenter.default.removeObserver(self)
     }
 
     // MARK: - Status Item
@@ -69,14 +71,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard let button = statusItem.button else { return }
 
         if popover.isShown {
-            popover.performClose(nil)
+            closePopover()
         } else {
             appState.inputText = ClipboardService.shared.readIfAvailable() ?? ""
 
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
 
+            startClickOutsideMonitor()
             NotificationCenter.default.post(name: .popoverDidOpen, object: nil)
+        }
+    }
+
+    private func closePopover() {
+        popover.performClose(nil)
+        stopClickOutsideMonitor()
+    }
+
+    private func startClickOutsideMonitor() {
+        stopClickOutsideMonitor()
+        clickOutsideMonitor = NSEvent.addGlobalMonitorForEvents(
+            matching: [.leftMouseDown, .rightMouseDown]
+        ) { [weak self] _ in
+            guard let self, self.popover.isShown else { return }
+            self.closePopover()
+        }
+    }
+
+    private func stopClickOutsideMonitor() {
+        if let monitor = clickOutsideMonitor {
+            NSEvent.removeMonitor(monitor)
+            clickOutsideMonitor = nil
         }
     }
 
@@ -163,9 +188,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // MARK: - Settings Window
 
     @objc private func openSettings() {
-        popover.performClose(nil)
+        closePopover()
 
-        if let existing = settingsWindow, existing.isVisible {
+        if let existing = settingsWindow {
+            if existing.isMiniaturized {
+                existing.deminiaturize(nil)
+            }
             NSApp.activate()
             existing.orderFrontRegardless()
             existing.makeKey()
@@ -184,8 +212,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         settingsWindow = window
         updateActivationPolicy()
 
-        window.orderFrontRegardless()
-        window.makeKey()
+        DispatchQueue.main.async {
+            window.orderFrontRegardless()
+            window.makeKey()
+            NSApp.activate()
+        }
     }
 
     // MARK: - Onboarding
@@ -230,15 +261,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         onboardingWindow = window
         updateActivationPolicy()
 
-        window.orderFrontRegardless()
-        window.makeKey()
+        // Defer so macOS finishes the .accessory → .regular policy switch
+        // before we attempt to bring the window to the front.
+        DispatchQueue.main.async {
+            window.orderFrontRegardless()
+            window.makeKey()
+            NSApp.activate()
+        }
     }
 
-    // MARK: - Correction
+    // MARK: - Shared Action Flow
 
+    /// Common flow for hotkey-triggered actions: get selected text, check
+    /// entitlement, show loader, execute, write to clipboard, auto-paste,
+    /// show banner, handle errors.
     @MainActor
-    private func handleCorrection() async {
-        // Read selected text via Accessibility API, fallback to Cmd+C simulation.
+    private func performAction(
+        type: ActionType,
+        loaderMessage: String,
+        execute: (String) async throws -> (text: String, banner: () -> Void)
+    ) async {
+        guard AXIsProcessTrusted() else {
+            NotificationService.shared.send(
+                title: "Poli",
+                body: String(localized: "notification.accessibility_required")
+            )
+            return
+        }
+
         let text = await ClipboardService.shared.getSelectedText() ?? ""
         guard !text.isEmpty else {
             NotificationService.shared.send(
@@ -248,7 +298,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return
         }
 
-        // Check entitlement and usage limits
         guard EntitlementManager.shared.canPerformAction() else {
             NotificationService.shared.send(
                 title: "Poli",
@@ -257,32 +306,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return
         }
 
-        appState.startAction(.correction)
-        LoaderPanel.show(message: String(localized: "loader.correction"))
+        appState.startAction(type)
+        LoaderPanel.show(message: loaderMessage)
 
         do {
-            let result = try await GrammarService.shared.correct(text: text)
+            let result = try await execute(text)
 
             LoaderPanel.dismiss()
-
-            // Write corrected text to clipboard
-            ClipboardService.shared.write(result.corrected)
-
-            // Auto-paste if a text field is active
+            ClipboardService.shared.write(result.text)
             PasteService.shared.pasteIfTextFieldActive()
-
-            // Show result banner with learning tips
-            let hasChanges = result.corrected != text
-            ResultBanner.show(
-                title: hasChanges ? String(localized: "result.corrected") : String(localized: "result.no_correction"),
-                resultText: hasChanges ? result.corrected : String(localized: "result.already_correct"),
-                correctionErrors: result.errors
-            )
-
-            appState.completeAction(with: result.corrected)
+            result.banner()
+            appState.completeAction(with: result.text)
         } catch {
             LoaderPanel.dismiss()
-
             NotificationService.shared.send(
                 title: "Poli -- Error",
                 body: error.localizedDescription
@@ -291,32 +327,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
+    // MARK: - Correction
+
+    @MainActor
+    private func handleCorrection() async {
+        await performAction(
+            type: .correction,
+            loaderMessage: String(localized: "loader.correction")
+        ) { text in
+            let result = try await GrammarService.shared.correct(text: text)
+            let hasChanges = result.corrected != text
+            return (
+                text: result.corrected,
+                banner: {
+                    ResultBanner.show(
+                        title: hasChanges
+                            ? String(localized: "result.corrected")
+                            : String(localized: "result.no_correction"),
+                        resultText: hasChanges
+                            ? result.corrected
+                            : String(localized: "result.already_correct"),
+                        correctionErrors: result.errors
+                    )
+                }
+            )
+        }
+    }
+
     // MARK: - Translation
 
     @MainActor
     private func handleTranslation() async {
-        // Read selected text via Accessibility API, fallback to Cmd+C simulation.
-        let text = await ClipboardService.shared.getSelectedText() ?? ""
-        guard !text.isEmpty else {
-            NotificationService.shared.send(
-                title: "Poli",
-                body: String(localized: "notification.no_text_selected")
-            )
-            return
-        }
-
-        guard EntitlementManager.shared.canPerformAction() else {
-            NotificationService.shared.send(
-                title: "Poli",
-                body: String(localized: "notification.limit_reached")
-            )
-            return
-        }
-
-        appState.startAction(.translation)
-        LoaderPanel.show(message: String(localized: "loader.translation"))
-
-        do {
+        await performAction(
+            type: .translation,
+            loaderMessage: String(localized: "loader.translation")
+        ) { text in
             let targetLanguage = UserDefaults.standard
                 .string(forKey: Constants.UserDefaultsKey.targetLanguage)
                 .flatMap { SupportedLanguage(rawValue: $0) }
@@ -327,32 +372,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 targetLanguage: targetLanguage
             )
 
-            LoaderPanel.dismiss()
-
-            // Write translated text to clipboard
-            ClipboardService.shared.write(result.translated)
-
-            // Auto-paste if a text field is active
-            PasteService.shared.pasteIfTextFieldActive()
-
-            // Show result banner with learning tips
             let sourceFlag = SupportedLanguage(rawValue: result.sourceLanguage)?.flag ?? ""
             let targetFlag = targetLanguage.flag
-            ResultBanner.show(
-                title: "\(sourceFlag) \u{2192} \(targetFlag) \(String(localized: "result.translated"))",
-                resultText: result.translated,
-                translationTips: result.tips
+            return (
+                text: result.translated,
+                banner: {
+                    ResultBanner.show(
+                        title: "\(sourceFlag) \u{2192} \(targetFlag) \(String(localized: "result.translated"))",
+                        resultText: result.translated,
+                        translationTips: result.tips
+                    )
+                }
             )
-
-            appState.completeAction(with: result.translated)
-        } catch {
-            LoaderPanel.dismiss()
-
-            NotificationService.shared.send(
-                title: "Poli -- Error",
-                body: error.localizedDescription
-            )
-            appState.failAction(with: error)
         }
     }
 }

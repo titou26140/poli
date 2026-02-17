@@ -135,10 +135,6 @@ private struct BannerContentView: View {
     let translationTips: [AIService.TranslationTip]
     let onClose: () -> Void
 
-    private let primaryColor = Color(red: 0.357, green: 0.373, blue: 0.902)
-    private let successColor = Color(red: 0.204, green: 0.780, blue: 0.349)
-    private let violetColor = Color(red: 0.608, green: 0.435, blue: 0.910)
-
     private var hasLearning: Bool {
         !correctionErrors.isEmpty || !translationTips.isEmpty
     }
@@ -176,7 +172,7 @@ private struct BannerContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(successColor)
+                    .foregroundStyle(Color.poliSuccess)
                     .font(.system(size: 15))
                 Text(title)
                     .font(.system(size: 13, weight: .semibold))
@@ -217,7 +213,7 @@ private struct BannerContentView: View {
                      ? String(localized: "detail.tips_label")
                      : String(localized: "detail.corrections_label"))
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(primaryColor)
+                    .foregroundStyle(Color.poliPrimary)
             }
 
             if !correctionErrors.isEmpty {
@@ -250,7 +246,7 @@ private struct BannerContentView: View {
                                 .foregroundStyle(.secondary)
                             Text(error.correction)
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(successColor)
+                                .foregroundStyle(Color.poliSuccess)
                         }
 
                         Text(error.rule)
@@ -261,7 +257,7 @@ private struct BannerContentView: View {
                 }
                 .padding(8)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(primaryColor.opacity(0.06))
+                .background(Color.poliPrimary.opacity(0.06))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
         }
@@ -279,7 +275,7 @@ private struct BannerContentView: View {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(tip.term)
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(violetColor)
+                            .foregroundStyle(Color.poliSecondary)
 
                         Text(tip.tip)
                             .font(.system(size: 10))
@@ -289,7 +285,7 @@ private struct BannerContentView: View {
                 }
                 .padding(8)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(violetColor.opacity(0.06))
+                .background(Color.poliSecondary.opacity(0.06))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
         }

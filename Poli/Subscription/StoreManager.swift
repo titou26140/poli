@@ -40,17 +40,20 @@ final class StoreManager: ObservableObject {
     // MARK: - Private
 
     private var transactionListener: Task<Void, Never>?
-
-    private let session: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
-        return URLSession(configuration: config)
-    }()
+    private var initTask: Task<Void, Never>?
 
     private let decoder: JSONDecoder = {
         let d = JSONDecoder()
         d.keyDecodingStrategy = .convertFromSnakeCase
         return d
+    }()
+
+    private let encoder = JSONEncoder()
+
+    private static let isoFormatter: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
     }()
 
     // MARK: - DTOs
@@ -83,7 +86,7 @@ final class StoreManager: ObservableObject {
     private init() {
         transactionListener = listenForTransactionUpdates()
 
-        Task {
+        initTask = Task {
             await loadProducts()
             await updatePurchasedProducts()
             await retrySyncUnsyncedTransactions()
@@ -92,6 +95,7 @@ final class StoreManager: ObservableObject {
 
     deinit {
         transactionListener?.cancel()
+        initTask?.cancel()
     }
 
     // MARK: - Load Products
@@ -218,8 +222,7 @@ final class StoreManager: ObservableObject {
     /// Sends the verified transaction to the backend for server-side activation.
     /// Retries up to 3 times with exponential backoff (1s, 2s, 4s).
     func syncTransactionWithBackend(_ transaction: Transaction) async {
-        guard let token = KeychainHelper.shared.read(key: Constants.keychainAuthTokenKey),
-              !token.isEmpty else {
+        guard KeychainHelper.shared.read(key: Constants.keychainAuthTokenKey) != nil else {
             #if DEBUG
             print("[StoreManager] No auth token — skipping backend sync")
             #endif
@@ -246,41 +249,16 @@ final class StoreManager: ObservableObject {
 
         for attempt in 0..<maxRetries {
             do {
-                let url = Constants.apiBaseURL.appendingPathComponent("api/subscription/verify")
-                var request = URLRequest(url: url)
-                request.httpMethod = "POST"
-                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                request.setValue("application/json", forHTTPHeaderField: "Accept")
-                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-                request.httpBody = try JSONEncoder().encode(requestBody)
-
-                #if DEBUG
-                print("[API] POST \(url.absoluteString)")
-                #endif
-                let (data, response) = try await session.data(for: request)
-                #if DEBUG
-                print("[API] Response: \(String(data: data, encoding: .utf8) ?? "<binary>")")
-                #endif
-
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    throw PoliError.networkError("Reponse serveur invalide.")
-                }
-
-                guard (200...299).contains(httpResponse.statusCode) else {
-                    throw PoliError.apiError(
-                        statusCode: httpResponse.statusCode,
-                        message: "Backend verify failed (HTTP \(httpResponse.statusCode))"
-                    )
-                }
-
-                let verifyResponse = try decoder.decode(VerifyResponse.self, from: data)
+                let verifyResponse: VerifyResponse = try await APIClient.shared.request(
+                    path: "api/subscription/verify",
+                    body: requestBody,
+                    decoder: decoder
+                )
 
                 let tier = SubscriptionTier.from(backendPlan: verifyResponse.tier)
                 let subscriptionStatus = SubscriptionStatus(rawValue: verifyResponse.status ?? "") ?? .active
-                let isoFormatter = ISO8601DateFormatter()
-                isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-                let cancelledAt = verifyResponse.cancelledAt.flatMap { isoFormatter.date(from: $0) }
-                let expiresAtDate = isoFormatter.date(from: verifyResponse.expiresAt)
+                let cancelledAt = verifyResponse.cancelledAt.flatMap { Self.isoFormatter.date(from: $0) }
+                let expiresAtDate = Self.isoFormatter.date(from: verifyResponse.expiresAt)
 
                 EntitlementManager.shared.updateFromBackend(
                     tier: tier,
@@ -350,11 +328,11 @@ final class StoreManager: ObservableObject {
         guard let data = UserDefaults.standard.data(forKey: Constants.UserDefaultsKey.unsyncedTransactionIDs) else {
             return []
         }
-        return (try? JSONDecoder().decode([UnsyncedTransaction].self, from: data)) ?? []
+        return (try? decoder.decode([UnsyncedTransaction].self, from: data)) ?? []
     }
 
     private func saveUnsyncedTransactions(_ transactions: [UnsyncedTransaction]) {
-        if let data = try? JSONEncoder().encode(transactions) {
+        if let data = try? encoder.encode(transactions) {
             UserDefaults.standard.set(data, forKey: Constants.UserDefaultsKey.unsyncedTransactionIDs)
         }
     }

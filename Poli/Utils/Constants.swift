@@ -56,9 +56,6 @@ enum Constants {
     enum UserDefaultsKey {
         static let targetLanguage = "targetLanguage"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
-        static let lastUsageResetDate = "lastUsageResetDate"
-        static let dailyUsageCount = "dailyUsageCount"
-        static let lifetimeUsageCount = "lifetimeUsageCount"
         static let unsyncedTransactionIDs = "unsyncedTransactionIDs"
         static let cachedSubscriptionTier = "cachedSubscriptionTier"
         static let cachedSubscriptionStatus = "cachedSubscriptionStatus"

@@ -26,7 +26,6 @@ struct SettingsView: View {
     @ObservedObject private var authManager = AuthManager.shared
 
     @State private var showPaywall: Bool = false
-    @State private var automationGranted: Bool = false
     @State private var launchAtLogin: Bool = SMAppService.mainApp.status == .enabled
     @State private var showRestartAlert: Bool = false
 
@@ -83,11 +82,11 @@ struct SettingsView: View {
                 HStack(spacing: 10) {
                     ZStack {
                         Circle()
-                            .fill(Color(red: 0x5B / 255.0, green: 0x5F / 255.0, blue: 0xE6 / 255.0).opacity(0.15))
+                            .fill(Color.poliPrimary.opacity(0.15))
                             .frame(width: 36, height: 36)
                         Text(String(user.name.prefix(1)).uppercased())
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color(red: 0x5B / 255.0, green: 0x5F / 255.0, blue: 0xE6 / 255.0))
+                            .foregroundStyle(Color.poliPrimary)
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -124,16 +123,7 @@ struct SettingsView: View {
                             .foregroundStyle(.white)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
-                            .background(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0x5B / 255.0, green: 0x5F / 255.0, blue: 0xE6 / 255.0),
-                                        Color(red: 0x9B / 255.0, green: 0x6F / 255.0, blue: 0xE8 / 255.0)
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
+                            .background(Color.poliPrimary)
                             .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -435,7 +425,7 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Poli")
                         .font(.system(size: 15, weight: .bold))
-                    Text(String(format: String(localized: "settings.about.version"), appVersion))
+                    Text(String(format: String(localized: "settings.about.version"), Self.appVersion))
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }
@@ -532,11 +522,11 @@ struct SettingsView: View {
 
     // MARK: - Helpers
 
-    private var appVersion: String {
+    private static let appVersion: String = {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
         return "\(version) (\(build))"
-    }
+    }()
 }
 
 #Preview {

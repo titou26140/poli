@@ -5,14 +5,8 @@ final class HistoryManager {
 
     static let shared = HistoryManager()
 
-    private let baseURL: URL = Constants.apiBaseURL
-    private let session: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
-        config.timeoutIntervalForResource = 30
-        return URLSession(configuration: config)
-    }()
-
+    /// Custom decoder with a date format matching the Laravel backend's
+    /// microsecond-precision timestamps (e.g. `2024-01-15T10:30:00.000000Z`).
     private let decoder: JSONDecoder = {
         let d = JSONDecoder()
         let formatter = DateFormatter()
@@ -41,7 +35,6 @@ final class HistoryManager {
         search: String? = nil,
         perPage: Int = 50
     ) async throws -> [HistoryEntry] {
-        var components = URLComponents(url: baseURL.appendingPathComponent("api/history"), resolvingAgainstBaseURL: false)!
         var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "per_page", value: String(perPage))
         ]
@@ -51,78 +44,26 @@ final class HistoryManager {
         if let search, !search.isEmpty {
             queryItems.append(URLQueryItem(name: "search", value: search))
         }
+
+        var components = URLComponents(string: "api/history")!
         components.queryItems = queryItems
 
-        let data = try await performRequest(url: components.url!, method: "GET")
-        let response = try decoder.decode(HistoryResponse.self, from: data)
-        return response.history
+        let data = try await APIClient.shared.requestData(method: "GET", path: components.string!)
+        return try decoder.decode(HistoryResponse.self, from: data).history
     }
 
     func toggleFavorite(type: String, id: Int) async throws -> Bool {
-        let url = baseURL.appendingPathComponent("api/history/\(type)/\(id)/favorite")
-        let data = try await performRequest(url: url, method: "PATCH")
-        let response = try decoder.decode(FavoriteResponse.self, from: data)
-        return response.is_favorite
+        let data = try await APIClient.shared.requestData(
+            method: "PATCH",
+            path: "api/history/\(type)/\(id)/favorite"
+        )
+        return try decoder.decode(FavoriteResponse.self, from: data).is_favorite
     }
 
     func deleteEntry(type: String, id: Int) async throws {
-        let url = baseURL.appendingPathComponent("api/history/\(type)/\(id)")
-        _ = try await performRequest(url: url, method: "DELETE")
-    }
-
-    // MARK: - Private
-
-    private func performRequest(url: URL, method: String) async throws -> Data {
-        guard let token = KeychainHelper.shared.read(key: Constants.keychainAuthTokenKey), !token.isEmpty else {
-            throw PoliError.unauthorized
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        #if DEBUG
-        print("[API] \(method) \(url.absoluteString)")
-        #endif
-        let data: Data
-        let response: URLResponse
-
-        do {
-            (data, response) = try await session.data(for: request)
-            #if DEBUG
-            print("[API] Response: \(String(data: data, encoding: .utf8) ?? "<binary>")")
-            #endif
-        } catch let urlError as URLError {
-            switch urlError.code {
-            case .timedOut:
-                throw PoliError.networkError("The request timed out. Please try again.")
-            case .notConnectedToInternet, .networkConnectionLost:
-                throw PoliError.networkError("No internet connection.")
-            default:
-                throw PoliError.networkError(urlError.localizedDescription)
-            }
-        } catch {
-            throw PoliError.networkError(error.localizedDescription)
-        }
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw PoliError.networkError("Invalid server response.")
-        }
-
-        switch httpResponse.statusCode {
-        case 200...299:
-            return data
-        case 401:
-            throw PoliError.unauthorized
-        case 429:
-            throw PoliError.usageLimitReached
-        case 403:
-            throw PoliError.notSubscribed
-        default:
-            let message = (try? JSONDecoder().decode([String: String].self, from: data))?["message"]
-                ?? "Unexpected error (HTTP \(httpResponse.statusCode))."
-            throw PoliError.apiError(statusCode: httpResponse.statusCode, message: message)
-        }
+        _ = try await APIClient.shared.requestData(
+            method: "DELETE",
+            path: "api/history/\(type)/\(id)"
+        )
     }
 }

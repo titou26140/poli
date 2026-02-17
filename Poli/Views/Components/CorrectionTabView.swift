@@ -10,12 +10,7 @@ struct CorrectionTabView: View {
     @State private var errors: [AIService.CorrectionError] = []
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
-
-    // MARK: - Colors
-
-    private let primaryColor = Color(red: 0.357, green: 0.373, blue: 0.902) // #5B5FE6
-    private let successColor = Color(red: 0.204, green: 0.780, blue: 0.349) // #34C759
-    private let errorColor = Color(red: 1.0, green: 0.231, blue: 0.188)     // #FF3B30
+    @State private var correctionTask: Task<Void, Never>?
 
     // MARK: - Body
 
@@ -40,29 +35,15 @@ struct CorrectionTabView: View {
             errors = []
             errorMessage = nil
         }
+        .onDisappear {
+            correctionTask?.cancel()
+        }
     }
 
     // MARK: - Input Section
 
     private var inputSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("correction.input_label")
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundStyle(.secondary)
-
-            TextEditor(text: $appState.inputText)
-                .font(.body)
-                .scrollContentBackground(.hidden)
-                .padding(8)
-                .background(Color(nsColor: .controlBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-                )
-                .frame(minHeight: 100, maxHeight: 140)
-        }
+        PoliTextEditor(label: "correction.input_label", text: $appState.inputText, maxHeight: 140)
     }
 
     // MARK: - Action Section
@@ -70,7 +51,8 @@ struct CorrectionTabView: View {
     private var actionSection: some View {
         HStack {
             Button {
-                Task { await performCorrection() }
+                correctionTask?.cancel()
+                correctionTask = Task { await performCorrection() }
             } label: {
                 HStack(spacing: 6) {
                     if isLoading {
@@ -84,7 +66,7 @@ struct CorrectionTabView: View {
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .tint(primaryColor)
+            .tint(Color.poliPrimary)
             .controlSize(.large)
             .disabled(appState.inputText.isBlank || isLoading)
         }
@@ -93,20 +75,7 @@ struct CorrectionTabView: View {
     // MARK: - Loading Section
 
     private var loadingSection: some View {
-        VStack(spacing: 10) {
-            Image("Mascot")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 48, height: 48)
-                .opacity(0.6)
-            ProgressView()
-                .controlSize(.small)
-            Text("correction.loading")
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        TabLoadingView(message: "correction.loading")
     }
 
     // MARK: - Result Section
@@ -126,40 +95,15 @@ struct CorrectionTabView: View {
                 // Detailed errors with rules
                 if !errors.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        ForEach(Array(errors.enumerated()), id: \.offset) { _, error in
-                            HStack(alignment: .top, spacing: 8) {
-                                Image(systemName: "lightbulb.fill")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(.orange)
-                                    .padding(.top, 2)
-
-                                VStack(alignment: .leading, spacing: 3) {
-                                    HStack(spacing: 4) {
-                                        Text(error.original)
-                                            .font(.system(size: 12, weight: .medium))
-                                            .strikethrough()
-                                            .foregroundStyle(errorColor)
-                                        Image(systemName: "arrow.right")
-                                            .font(.system(size: 9))
-                                            .foregroundStyle(.secondary)
-                                        Text(error.correction)
-                                            .font(.system(size: 12, weight: .semibold))
-                                            .foregroundStyle(successColor)
-                                    }
-
-                                    Text(error.rule)
-                                        .font(.system(size: 11))
-                                        .foregroundStyle(.secondary)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                            }
+                        ForEach(errors) { error in
+                            CorrectionErrorRow(error: error)
                         }
                     }
                     .padding(10)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(primaryColor.opacity(0.04))
+                            .fill(Color.poliPrimary.opacity(0.04))
                     )
                 }
 
@@ -179,19 +123,7 @@ struct CorrectionTabView: View {
         }
 
         if let error = errorMessage {
-            HStack(spacing: 6) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(errorColor)
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(errorColor)
-            }
-            .padding(8)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(errorColor.opacity(0.08))
-            )
+            InlineErrorBanner(message: error)
         }
     }
 

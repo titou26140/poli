@@ -28,11 +28,6 @@ struct AuthView: View {
         case name, email, password, passwordConfirmation
     }
 
-    // MARK: - Colors
-
-    private let primaryColor = Color(red: 0x5B / 255.0, green: 0x5F / 255.0, blue: 0xE6 / 255.0)
-    private let secondaryColor = Color(red: 0x9B / 255.0, green: 0x6F / 255.0, blue: 0xE8 / 255.0)
-
     // MARK: - Validation
 
     private var isFormValid: Bool {
@@ -78,13 +73,7 @@ struct AuthView: View {
                  ? String(localized: "auth.login")
                  : String(localized: "auth.register"))
                 .font(.system(size: 22, weight: .bold))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [primaryColor, secondaryColor],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
+                .foregroundStyle(Color.poliPrimary)
 
             Text(mode == .login
                  ? String(localized: "auth.login.subtitle")
@@ -183,13 +172,7 @@ struct AuthView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 44)
             .foregroundStyle(.white)
-            .background(
-                LinearGradient(
-                    colors: isFormValid ? [primaryColor, secondaryColor] : [.gray.opacity(0.5), .gray.opacity(0.5)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
+            .background(isFormValid ? .poliPrimary : Color.gray.opacity(0.5))
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
@@ -211,7 +194,7 @@ struct AuthView: View {
                  ? String(localized: "auth.toggle.to_register")
                  : String(localized: "auth.toggle.to_login"))
                 .font(.system(size: 12))
-                .foregroundStyle(primaryColor)
+                .foregroundStyle(Color.poliPrimary)
         }
         .buttonStyle(.plain)
         .focusable(false)

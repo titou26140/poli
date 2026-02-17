@@ -10,6 +10,7 @@ struct TranslationTabView: View {
     @State private var tips: [AIService.TranslationTip] = []
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
+    @State private var translationTask: Task<Void, Never>?
 
     @AppStorage(Constants.UserDefaultsKey.targetLanguage)
     private var targetLanguageCode: String = Constants.defaultTargetLanguage.rawValue
@@ -24,12 +25,6 @@ struct TranslationTabView: View {
             set: { targetLanguageCode = $0.rawValue }
         )
     }
-
-    // MARK: - Colors
-
-    private let primaryColor = Color(red: 0.357, green: 0.373, blue: 0.902) // #5B5FE6
-    private let violetColor = Color(red: 0.608, green: 0.435, blue: 0.910)  // #9B6FE8
-    private let errorColor = Color(red: 1.0, green: 0.231, blue: 0.188)     // #FF3B30
 
     // MARK: - Body
 
@@ -55,29 +50,15 @@ struct TranslationTabView: View {
             tips = []
             errorMessage = nil
         }
+        .onDisappear {
+            translationTask?.cancel()
+        }
     }
 
     // MARK: - Input Section
 
     private var inputSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("translation.input_label")
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundStyle(.secondary)
-
-            TextEditor(text: $appState.inputText)
-                .font(.body)
-                .scrollContentBackground(.hidden)
-                .padding(8)
-                .background(Color(nsColor: .controlBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-                )
-                .frame(minHeight: 80, maxHeight: 120)
-        }
+        PoliTextEditor(label: "translation.input_label", text: $appState.inputText, maxHeight: 120)
     }
 
     // MARK: - Language Section
@@ -96,7 +77,8 @@ struct TranslationTabView: View {
 
     private var actionSection: some View {
         Button {
-            Task { await performTranslation() }
+            translationTask?.cancel()
+            translationTask = Task { await performTranslation() }
         } label: {
             HStack(spacing: 6) {
                 if isLoading {
@@ -110,7 +92,7 @@ struct TranslationTabView: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent)
-        .tint(violetColor)
+        .tint(Color.poliSecondary)
         .controlSize(.large)
         .disabled(appState.inputText.isBlank || isLoading)
     }
@@ -118,20 +100,7 @@ struct TranslationTabView: View {
     // MARK: - Loading Section
 
     private var loadingSection: some View {
-        VStack(spacing: 10) {
-            Image("Mascot")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 48, height: 48)
-                .opacity(0.6)
-            ProgressView()
-                .controlSize(.small)
-            Text("translation.loading")
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        TabLoadingView(message: "translation.loading")
     }
 
     // MARK: - Result Section
@@ -176,31 +145,15 @@ struct TranslationTabView: View {
                 // Tips section — only shown if there are tips
                 if !tips.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        ForEach(Array(tips.enumerated()), id: \.offset) { _, tip in
-                            HStack(alignment: .top, spacing: 8) {
-                                Image(systemName: "lightbulb.fill")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(.orange)
-                                    .padding(.top, 2)
-
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(tip.term)
-                                        .font(.system(size: 12, weight: .semibold))
-                                        .foregroundStyle(violetColor)
-
-                                    Text(tip.tip)
-                                        .font(.system(size: 11))
-                                        .foregroundStyle(.secondary)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                            }
+                        ForEach(tips) { tip in
+                            TranslationTipRow(tip: tip)
                         }
                     }
                     .padding(10)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(violetColor.opacity(0.04))
+                            .fill(Color.poliSecondary.opacity(0.04))
                     )
                 }
 
@@ -220,19 +173,7 @@ struct TranslationTabView: View {
         }
 
         if let error = errorMessage {
-            HStack(spacing: 6) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(errorColor)
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(errorColor)
-            }
-            .padding(8)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(errorColor.opacity(0.08))
-            )
+            InlineErrorBanner(message: error)
         }
     }
 

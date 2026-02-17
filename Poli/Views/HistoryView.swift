@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HistoryView: View {
 
-    @State private var viewModel = HistoryViewModel()
+    @Bindable var viewModel: HistoryViewModel
 
     // MARK: - Body
 
@@ -33,7 +33,12 @@ struct HistoryView: View {
             viewModel.scheduleReload()
         }
         .onReceive(NotificationCenter.default.publisher(for: .popoverDidOpen)) { _ in
+            // Only reload if not already loading to avoid concurrent loadHistory calls.
+            guard !viewModel.isLoading else { return }
             viewModel.scheduleReload()
+        }
+        .onDisappear {
+            viewModel.cancelAllTasks()
         }
         .sheet(item: $viewModel.selectedEntry) { entry in
             HistoryDetailView(
@@ -256,5 +261,5 @@ struct HistoryView: View {
 }
 
 #Preview {
-    HistoryView()
+    HistoryView(viewModel: HistoryViewModel())
 }

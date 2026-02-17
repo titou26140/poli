@@ -14,20 +14,22 @@ final class NotificationService {
 
     // MARK: - Setup
 
-    /// Requests notification authorization from the user.
+    /// Requests notification authorization only if the user hasn't been asked yet.
     ///
-    /// Asks for `.alert` and `.sound` permissions. This should be called
-    /// once during app launch or onboarding.
+    /// Checks the current authorization status first and only calls
+    /// `requestAuthorization` when the status is `.notDetermined`.
     func setup() {
-        center.requestAuthorization(options: [.alert, .sound]) { granted, error in
-            #if DEBUG
-            if let error = error {
-                print("[NotificationService] Authorization error: \(error.localizedDescription)")
+        center.getNotificationSettings { [weak self] settings in
+            guard let self, settings.authorizationStatus == .notDetermined else { return }
+
+            self.center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+                #if DEBUG
+                if let error {
+                    print("[NotificationService] Authorization error: \(error.localizedDescription)")
+                }
+                print("[NotificationService] Notification permission \(granted ? "granted" : "denied").")
+                #endif
             }
-            if granted {
-                print("[NotificationService] Notification permission granted.")
-            }
-            #endif
         }
     }
 
@@ -47,12 +49,12 @@ final class NotificationService {
         let request = UNNotificationRequest(
             identifier: UUID().uuidString,
             content: content,
-            trigger: nil // `nil` trigger means deliver immediately.
+            trigger: nil
         )
 
         center.add(request) { error in
             #if DEBUG
-            if let error = error {
+            if let error {
                 print("[NotificationService] Failed to send notification: \(error.localizedDescription)")
             }
             #endif

@@ -173,35 +173,7 @@ struct HistoryDetailView: View {
     // MARK: - Diff View
 
     private func diffView(original: String, corrected: String) -> some View {
-        let originalWords = original.split(separator: " ", omittingEmptySubsequences: false).map(String.init)
-        let correctedWords = corrected.split(separator: " ", omittingEmptySubsequences: false).map(String.init)
-
-        return VStack(alignment: .leading, spacing: 4) {
-            let attributedText = buildDiffAttributedText(original: originalWords, corrected: correctedWords)
-            Text(attributedText)
-                .font(.system(size: 13))
-                .textSelection(.enabled)
-        }
-    }
-
-    private func buildDiffAttributedText(original: [String], corrected: [String]) -> AttributedString {
-        var result = AttributedString()
-
-        for (index, word) in corrected.enumerated() {
-            if index > 0 {
-                result.append(AttributedString(" "))
-            }
-
-            var attrWord = AttributedString(word)
-            if index >= original.count || (index < original.count && original[index] != word) {
-                attrWord.foregroundColor = .green
-                attrWord.font = .system(size: 13, weight: .semibold)
-            }
-
-            result.append(attrWord)
-        }
-
-        return result
+        DiffTextView(original: original, corrected: corrected)
     }
 
     // MARK: - Language Badge
@@ -222,10 +194,6 @@ struct HistoryDetailView: View {
 
     // MARK: - Correction Errors Section
 
-    private let primaryColor = Color(red: 0.357, green: 0.373, blue: 0.902) // #5B5FE6
-    private let successColor = Color(red: 0.204, green: 0.780, blue: 0.349) // #34C759
-    private let errorColor = Color(red: 1.0, green: 0.231, blue: 0.188)     // #FF3B30
-
     private func correctionErrorsSection(_ errors: [AIService.CorrectionError]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Label(String(localized: "detail.corrections_label"), systemImage: "lightbulb")
@@ -233,47 +201,20 @@ struct HistoryDetailView: View {
                 .foregroundStyle(.orange)
 
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(Array(errors.enumerated()), id: \.offset) { _, error in
-                    HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: "lightbulb.fill")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.orange)
-                            .padding(.top, 2)
-
-                        VStack(alignment: .leading, spacing: 3) {
-                            HStack(spacing: 4) {
-                                Text(error.original)
-                                    .font(.system(size: 12, weight: .medium))
-                                    .strikethrough()
-                                    .foregroundStyle(errorColor)
-                                Image(systemName: "arrow.right")
-                                    .font(.system(size: 9))
-                                    .foregroundStyle(.secondary)
-                                Text(error.correction)
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundStyle(successColor)
-                            }
-
-                            Text(error.rule)
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
+                ForEach(errors) { error in
+                    CorrectionErrorRow(error: error)
                 }
             }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(primaryColor.opacity(0.04))
+                    .fill(Color.poliPrimary.opacity(0.04))
             )
         }
     }
 
     // MARK: - Translation Tips Section
-
-    private let violetColor = Color(red: 0.608, green: 0.435, blue: 0.910) // #9B6FE8
 
     private func translationTipsSection(_ tips: [AIService.TranslationTip]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -282,31 +223,15 @@ struct HistoryDetailView: View {
                 .foregroundStyle(.orange)
 
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(Array(tips.enumerated()), id: \.offset) { _, tip in
-                    HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: "lightbulb.fill")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.orange)
-                            .padding(.top, 2)
-
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(tip.term)
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(violetColor)
-
-                            Text(tip.tip)
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
+                ForEach(tips) { tip in
+                    TranslationTipRow(tip: tip)
                 }
             }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(violetColor.opacity(0.04))
+                    .fill(Color.poliSecondary.opacity(0.04))
             )
         }
     }

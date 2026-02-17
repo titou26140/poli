@@ -10,6 +10,7 @@ struct PopoverView: View {
 
     @ObservedObject private var authManager = AuthManager.shared
     @State private var selectedTab: Tab = .correct
+    @State private var historyViewModel = HistoryViewModel()
 
     // MARK: - Tab Enum
 
@@ -18,10 +19,6 @@ struct PopoverView: View {
         case translate
         case history
     }
-
-    // MARK: - Colors
-
-    private let primaryColor = Color(red: 0.357, green: 0.373, blue: 0.902) // #5B5FE6
 
     // MARK: - Body
 
@@ -45,6 +42,12 @@ struct PopoverView: View {
 
     private var header: some View {
         HStack(spacing: 0) {
+            Image("Mascot")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 24)
+                .padding(.trailing, 4)
+
             tabButton(tab: .correct, icon: "textformat.abc", label: String(localized: "tab.correct"))
             tabButton(tab: .translate, icon: "globe", label: String(localized: "tab.translate"))
             tabButton(tab: .history, icon: "clock", label: String(localized: "tab.history"))
@@ -84,11 +87,11 @@ struct PopoverView: View {
                 Text(label)
                     .font(.system(size: 10, weight: .medium))
             }
-            .foregroundStyle(selectedTab == tab ? primaryColor : .secondary)
+            .foregroundStyle(selectedTab == tab ? Color.poliPrimary : Color.secondary)
             .frame(width: 72, height: 42)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(selectedTab == tab ? primaryColor.opacity(0.1) : Color.clear)
+                    .fill(selectedTab == tab ? Color.poliPrimary.opacity(0.1) : Color.clear)
             )
             .contentShape(Rectangle())
         }
@@ -108,7 +111,7 @@ struct PopoverView: View {
             TranslationTabView(appState: appState)
 
         case .history:
-            HistoryView()
+            HistoryView(viewModel: historyViewModel)
         }
     }
 }
