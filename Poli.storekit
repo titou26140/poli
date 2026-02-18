@@ -8,7 +8,7 @@
   ],
   "settings" : {
     "_applicationInternalID" : "0",
-    "_developerTeamID" : "",
+    "_developerTeamID" : "4Z28H8AVXH",
     "_failTransactionsEnabled" : false,
     "_lastSynchronizedDate" : null,
     "_locale" : "fr",
@@ -87,7 +87,7 @@
           ],
           "displayPrice" : "4.99",
           "familyShareable" : false,
-          "groupNumber" : 1,
+          "groupNumber" : 2,
           "internalID" : "poli_starter_monthly_001",
           "introductoryOffer" : null,
           "localizations" : [
@@ -120,7 +120,7 @@
           ],
           "displayPrice" : "19.99",
           "familyShareable" : false,
-          "groupNumber" : 2,
+          "groupNumber" : 1,
           "internalID" : "poli_pro_monthly_001",
           "introductoryOffer" : null,
           "localizations" : [

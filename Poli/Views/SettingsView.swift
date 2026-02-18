@@ -131,6 +131,44 @@ struct SettingsView: View {
                 }
             }
 
+            // Upgrade to Pro button for Starter users
+            if entitlementManager.isStarter && !entitlementManager.isCancelledButActive {
+                Button {
+                    showPaywall = true
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.system(size: 12))
+                        Text("settings.account.upgrade_to_pro")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.poliSecondary)
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .focusable(false)
+            }
+
+            // Manage subscription link for paid users
+            if entitlementManager.isPaid {
+                Button {
+                    StoreManager.openManageSubscriptions()
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.system(size: 11))
+                        Text("settings.account.manage_subscription")
+                            .font(.system(size: 12))
+                    }
+                    .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .focusable(false)
+            }
+
             // Contextual message for grace period or cancelled status
             if entitlementManager.isInGracePeriod {
                 Text("settings.account.grace_period_message")

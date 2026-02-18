@@ -32,6 +32,9 @@ final class EntitlementManager: ObservableObject {
     /// Legacy convenience kept for call sites that check Pro specifically.
     var isPro: Bool { currentTier == .pro }
 
+    /// Whether the user is on the Starter tier.
+    var isStarter: Bool { currentTier == .starter }
+
     /// The usage limit for the current tier.
     var usageLimit: Int { currentTier.usageLimit }
 

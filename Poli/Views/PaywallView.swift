@@ -4,6 +4,16 @@ import StoreKit
 /// The upgrade screen presenting Starter and Pro subscription options.
 struct PaywallView: View {
 
+    // MARK: - Config
+
+    /// When `true`, the view was opened because the user hit their quota.
+    /// For Starter users this shows a full Pro upgrade promotion instead of the thank-you screen.
+    let upgradePrompted: Bool
+
+    init(upgradePrompted: Bool = false) {
+        self.upgradePrompted = upgradePrompted
+    }
+
     // MARK: - Environment
 
     @Environment(\.dismiss) private var dismiss
@@ -27,8 +37,12 @@ struct PaywallView: View {
 
                     if entitlementManager.isCancelledButActive {
                         cancelledButActiveView
-                    } else if entitlementManager.isPaid {
-                        alreadySubscribedView
+                    } else if entitlementManager.isPro {
+                        alreadySubscribedProView
+                    } else if entitlementManager.isStarter && upgradePrompted {
+                        starterUpgradePromotionView
+                    } else if entitlementManager.isStarter {
+                        starterSubscribedView
                     } else {
                         comparisonTable
                         planSelector
@@ -109,9 +123,9 @@ struct PaywallView: View {
         }
     }
 
-    // MARK: - Already Subscribed
+    // MARK: - Already Subscribed (Pro)
 
-    private var alreadySubscribedView: some View {
+    private var alreadySubscribedProView: some View {
         VStack(spacing: 20) {
             Image(systemName: "checkmark.seal.fill")
                 .font(.system(size: 48))
@@ -121,9 +135,7 @@ struct PaywallView: View {
                 .font(.system(size: 16, weight: .semibold))
                 .multilineTextAlignment(.center)
 
-            Text(entitlementManager.currentTier.isPaid
-                 ? String(format: String(localized: "paywall.actions_per_day"), entitlementManager.currentTier.usageLimit)
-                 : String(format: String(localized: "paywall.actions_total"), entitlementManager.currentTier.usageLimit))
+            Text(String(format: String(localized: "paywall.actions_per_day"), entitlementManager.currentTier.usageLimit))
                 .font(.system(size: 14))
                 .foregroundStyle(.secondary)
 
@@ -140,8 +152,154 @@ struct PaywallView: View {
             }
             .buttonStyle(.plain)
             .focusable(false)
+
+            manageSubscriptionLink
         }
         .padding(.top, 20)
+    }
+
+    // MARK: - Starter Subscribed View (from Settings)
+
+    private var starterSubscribedView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(.green)
+
+            Text(String(format: String(localized: "paywall.subscribed"), entitlementManager.currentTier.displayName))
+                .font(.system(size: 16, weight: .semibold))
+                .multilineTextAlignment(.center)
+
+            Text(String(format: String(localized: "paywall.actions_per_day"), entitlementManager.currentTier.usageLimit))
+                .font(.system(size: 14))
+                .foregroundStyle(.secondary)
+
+            Button {
+                dismiss()
+            } label: {
+                Text("paywall.close")
+                    .font(.system(size: 15, weight: .semibold))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .foregroundStyle(.white)
+                    .background(Color.poliPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+
+            // Subtle upgrade link
+            Button {
+                Task { await performUpgrade() }
+            } label: {
+                Text("paywall.upgrade.button")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .underline()
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            .disabled(isPurchasing || storeManager.isLoading || storeManager.isSyncingWithBackend)
+
+            manageSubscriptionLink
+        }
+        .padding(.top, 20)
+    }
+
+    // MARK: - Starter Upgrade Promotion (from Quota Limit)
+
+    private var starterUpgradePromotionView: some View {
+        VStack(spacing: 20) {
+            // Quota reached indicator
+            Image(systemName: "exclamationmark.circle.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(.orange)
+
+            Text("paywall.upgrade.quota_reached")
+                .font(.system(size: 16, weight: .semibold))
+                .multilineTextAlignment(.center)
+
+            // Upgrade title
+            Text("paywall.upgrade.title")
+                .font(.system(size: 20, weight: .bold))
+
+            // Pro features list
+            if let proProduct = storeManager.products.first(where: { $0.id == StoreManager.ProductID.proMonthly }) {
+                VStack(alignment: .leading, spacing: 12) {
+                    upgradeFeatureRow(icon: "bolt.fill", text: String(localized: "paywall.upgrade.feature_actions"), color: .orange)
+                    upgradeFeatureRow(icon: "clock.arrow.circlepath", text: String(localized: "paywall.upgrade.feature_history"), color: .blue)
+                    upgradeFeatureRow(icon: "paintbrush.fill", text: String(localized: "paywall.upgrade.feature_tone"), color: .purple)
+                }
+                .padding(16)
+                .background(Color.primary.opacity(0.04))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                // Price
+                Text(String(format: String(localized: "paywall.upgrade.price"), proProduct.displayPrice))
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+
+                // Upgrade button
+                Button {
+                    Task { await performUpgrade() }
+                } label: {
+                    Group {
+                        if isPurchasing || storeManager.isLoading {
+                            ProgressView()
+                                .controlSize(.small)
+                                .tint(.white)
+                        } else if storeManager.isSyncingWithBackend {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .tint(.white)
+                                Text("paywall.syncing")
+                                    .font(.system(size: 15, weight: .semibold))
+                            }
+                        } else {
+                            Text("paywall.upgrade.button")
+                                .font(.system(size: 15, weight: .semibold))
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .foregroundStyle(.white)
+                    .background(Color.poliSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .buttonStyle(.plain)
+                .focusable(false)
+                .disabled(isPurchasing || storeManager.isLoading || storeManager.isSyncingWithBackend)
+            }
+
+            manageSubscriptionLink
+        }
+    }
+
+    private func upgradeFeatureRow(icon: String, text: String, color: Color) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundStyle(color)
+                .frame(width: 24)
+            Text(text)
+                .font(.system(size: 14))
+        }
+    }
+
+    // MARK: - Manage Subscription Link
+
+    private var manageSubscriptionLink: some View {
+        Button {
+            StoreManager.openManageSubscriptions()
+        } label: {
+            Text("paywall.manage_subscription")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .underline()
+        }
+        .buttonStyle(.plain)
+        .focusable(false)
     }
 
     // MARK: - Comparison Table
@@ -344,6 +502,31 @@ struct PaywallView: View {
     }
 
     // MARK: - Purchase Logic
+
+    private func performUpgrade() async {
+        guard AuthManager.shared.isAuthenticated else {
+            errorMessage = String(localized: "paywall.error.login_first")
+            showError = true
+            return
+        }
+
+        guard let proProduct = storeManager.products.first(where: { $0.id == StoreManager.ProductID.proMonthly }) else {
+            errorMessage = String(localized: "paywall.error.product_not_found")
+            showError = true
+            return
+        }
+
+        isPurchasing = true
+        defer { isPurchasing = false }
+
+        let success = await storeManager.purchase(proProduct)
+        if success {
+            NotificationService.shared.send(
+                title: "Poli",
+                body: String(localized: "paywall.upgrade.success")
+            )
+        }
+    }
 
     private func performPurchase() async {
         guard AuthManager.shared.isAuthenticated else {

@@ -12,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
     private var settingsWindow: NSWindow?
+    private var paywallWindow: NSWindow?
     private var onboardingWindow: NSWindow?
     private var clickOutsideMonitor: Any?
 
@@ -21,6 +22,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // MARK: - Lifecycle
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Start as a menu bar-only app (no Dock icon).
+        NSApp.setActivationPolicy(.accessory)
+
         // Set the app icon early so notifications and other system UI
         // display it correctly, even in .accessory (menu bar only) mode.
         NSApp.applicationIconImage = NSImage(named: "AppIcon")
@@ -146,6 +150,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         NotificationCenter.default.addObserver(
             self,
+            selector: #selector(openPaywallFromNotification),
+            name: .openPaywall,
+            object: nil
+        )
+
+        NotificationCenter.default.addObserver(
+            self,
             selector: #selector(handleOnboardingCompleted),
             name: .onboardingCompleted,
             object: nil
@@ -163,7 +174,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     /// Show in Dock when a window is open, hide when all windows are closed.
     private func updateActivationPolicy() {
-        let hasVisibleWindow = (settingsWindow != nil) || (onboardingWindow != nil)
+        let hasVisibleWindow = (settingsWindow != nil) || (paywallWindow != nil) || (onboardingWindow != nil)
 
         let newPolicy: NSApplication.ActivationPolicy = hasVisibleWindow ? .regular : .accessory
         if NSApp.activationPolicy() != newPolicy {
@@ -182,6 +193,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         if closingWindow === settingsWindow {
             settingsWindow = nil
+        } else if closingWindow === paywallWindow {
+            paywallWindow = nil
         } else if closingWindow === onboardingWindow {
             onboardingWindow = nil
         }
@@ -221,6 +234,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.center()
 
         settingsWindow = window
+        updateActivationPolicy()
+
+        DispatchQueue.main.async {
+            window.orderFrontRegardless()
+            window.makeKey()
+            NSApp.activate()
+        }
+    }
+
+    // MARK: - Paywall Window
+
+    @objc private func openPaywallFromNotification() {
+        openPaywall(upgradePrompted: true)
+    }
+
+    private func openPaywall(upgradePrompted: Bool = false) {
+        closePopover()
+
+        // Close existing paywall so context (upgradePrompted) is refreshed.
+        if let existing = paywallWindow {
+            existing.close()
+            paywallWindow = nil
+        }
+
+        let hostingController = NSHostingController(
+            rootView: PaywallView(upgradePrompted: upgradePrompted)
+        )
+
+        let window = NSWindow(contentViewController: hostingController)
+        window.title = String(localized: "paywall.title")
+        window.styleMask = [.titled, .closable]
+        window.setContentSize(NSSize(width: 440, height: 620))
+        window.delegate = self
+        window.center()
+
+        paywallWindow = window
         updateActivationPolicy()
 
         DispatchQueue.main.async {
@@ -314,6 +363,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 title: "Poli",
                 body: String(localized: "notification.limit_reached")
             )
+            openPaywall(upgradePrompted: true)
             return
         }
 
@@ -325,7 +375,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
             LoaderPanel.dismiss()
             ClipboardService.shared.write(result.text)
-            PasteService.shared.pasteIfTextFieldActive()
+            await PasteService.shared.pasteIfTextFieldActive()
             result.banner()
             appState.completeAction(with: result.text)
         } catch {

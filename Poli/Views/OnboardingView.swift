@@ -650,8 +650,14 @@ struct OnboardingView: View {
     }
 
     private func requestAccessibility() {
+        // Try the system prompt first
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
         AXIsProcessTrustedWithOptions(options)
+
+        // Also open System Settings directly as a fallback (sandbox may block the prompt)
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+        }
 
         accessibilityCheckTask?.cancel()
         accessibilityCheckTask = Task {

@@ -1,33 +1,31 @@
 import AppKit
+import ApplicationServices
 
-/// Provides automated paste functionality via System Events (AppleScript).
+/// Pastes clipboard content into the frontmost application by simulating Cmd+V via CGEvent.
+@MainActor
 final class PasteService {
 
     static let shared = PasteService()
-
-    private let pasteScript = NSAppleScript(source: """
-        tell application "System Events" to keystroke "v" using command down
-    """)
-
-    private var pendingPasteWork: DispatchWorkItem?
 
     private init() {}
 
     // MARK: - Auto-Paste
 
-    /// Simulates Cmd+V via System Events to paste clipboard content into the active text field.
-    func pasteIfTextFieldActive() {
-        pendingPasteWork?.cancel()
-        let work = DispatchWorkItem { [weak self] in
-            var error: NSDictionary?
-            self?.pasteScript?.executeAndReturnError(&error)
-            #if DEBUG
-            if let error {
-                print("[Paste] System Events error: \(error[NSAppleScript.errorBriefMessage] ?? error)")
-            }
-            #endif
-        }
-        pendingPasteWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: work)
+    /// Simulates Cmd+V via CGEvent to paste clipboard content into the active text field.
+    /// Waits 100ms before posting the event to let the UI settle after hotkey release.
+    func pasteIfTextFieldActive() async {
+        try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
+
+        let source = CGEventSource(stateID: .hidSystemState)
+        let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: true)
+        keyDown?.flags = .maskCommand
+        let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: false)
+        keyUp?.flags = .maskCommand
+        keyDown?.post(tap: .cgAnnotatedSessionEventTap)
+        keyUp?.post(tap: .cgAnnotatedSessionEventTap)
+
+        #if DEBUG
+        print("[Paste] Pasted via CGEvent Cmd+V")
+        #endif
     }
 }

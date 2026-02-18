@@ -159,7 +159,7 @@ struct TranslationTabView: View {
 
                 Button {
                     ClipboardService.shared.write(translated)
-                    PasteService.shared.pasteIfTextFieldActive()
+                    Task { await PasteService.shared.pasteIfTextFieldActive() }
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "doc.on.doc")
@@ -208,6 +208,7 @@ struct TranslationTabView: View {
             guard EntitlementManager.shared.canPerformAction() else {
                 errorMessage = PoliError.usageLimitReached.localizedDescription
                 isLoading = false
+                NotificationCenter.default.post(name: .openPaywall, object: nil)
                 return
             }
 

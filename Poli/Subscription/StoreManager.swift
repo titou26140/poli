@@ -175,6 +175,14 @@ final class StoreManager: ObservableObject {
         }
     }
 
+    // MARK: - Manage Subscriptions
+
+    static func openManageSubscriptions() {
+        if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
     // MARK: - Update Purchased Products
 
     func updatePurchasedProducts() async {

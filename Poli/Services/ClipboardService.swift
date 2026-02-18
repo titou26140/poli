@@ -1,6 +1,8 @@
 import AppKit
+import ApplicationServices
 
-/// Provides read and write access to the system clipboard (pasteboard).
+/// Provides read and write access to the system clipboard (pasteboard)
+/// and retrieves selected text from the frontmost application.
 final class ClipboardService {
 
     static let shared = ClipboardService()
@@ -9,7 +11,7 @@ final class ClipboardService {
 
     private init() {}
 
-    // MARK: - Public API
+    // MARK: - Clipboard
 
     /// Reads the current text content from the system clipboard.
     func read() -> String? {
@@ -32,30 +34,23 @@ final class ClipboardService {
 
     // MARK: - Get Selected Text
 
-    /// Copies the currently selected text from the frontmost application via System Events (Cmd+C),
+    /// Copies the currently selected text by simulating Cmd+C via CGEvent,
     /// then reads the clipboard.
     func getSelectedText() async -> String? {
-        // Wait until modifier keys (Option, Shift, etc.) are fully released,
-        // otherwise the Cmd+C gets merged with held keys and fails.
         await waitForModifiersRelease()
 
+        // Save current clipboard content to restore if no text is selected
+        let savedClipboard = pasteboard.string(forType: .string)
         let previousChangeCount = pasteboard.changeCount
 
-        let script = NSAppleScript(source: """
-            tell application "System Events"
-                key code 8 using command down
-            end tell
-        """)
-
-        var error: NSDictionary?
-        script?.executeAndReturnError(&error)
-
-        if let error {
-            #if DEBUG
-            print("[Clipboard] System Events error: \(error[NSAppleScript.errorBriefMessage] ?? error)")
-            #endif
-            return nil
-        }
+        // Simulate Cmd+C via CGEvent (session event tap works in sandbox)
+        let source = CGEventSource(stateID: .hidSystemState)
+        let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x08, keyDown: true)
+        keyDown?.flags = .maskCommand
+        let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0x08, keyDown: false)
+        keyUp?.flags = .maskCommand
+        keyDown?.post(tap: .cgAnnotatedSessionEventTap)
+        keyUp?.post(tap: .cgAnnotatedSessionEventTap)
 
         // Wait for the pasteboard to update (up to 500ms)
         for _ in 0..<10 {
@@ -63,14 +58,19 @@ final class ClipboardService {
             if pasteboard.changeCount != previousChangeCount {
                 let text = readIfAvailable()
                 #if DEBUG
-                print("[Clipboard] Got selected text (\(text?.count ?? 0) chars)")
+                print("[Clipboard] Got selected text via CGEvent (\(text?.count ?? 0) chars)")
                 #endif
                 return text
             }
         }
 
+        // No text was selected — restore the previous clipboard content
+        if let saved = savedClipboard {
+            write(saved)
+        }
+
         #if DEBUG
-        print("[Clipboard] Pasteboard did not change after Cmd+C")
+        print("[Clipboard] Pasteboard did not change after CGEvent Cmd+C")
         #endif
         return nil
     }

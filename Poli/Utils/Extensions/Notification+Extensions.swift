@@ -5,4 +5,5 @@ extension Notification.Name {
     static let closeSettings = Notification.Name("closeSettings")
     static let onboardingCompleted = Notification.Name("onboardingCompleted")
     static let popoverDidOpen = Notification.Name("popoverDidOpen")
+    static let openPaywall = Notification.Name("openPaywall")
 }

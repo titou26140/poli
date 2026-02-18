@@ -2113,6 +2113,29 @@
         }
       }
     },
+    "notification.result_in_clipboard" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Result copied to clipboard. Press Cmd+V to paste."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resultado copiado al portapapeles. Presiona Cmd+V para pegar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Résultat copié dans le presse-papiers. Appuyez sur Cmd+V pour coller."
+          }
+        }
+      }
+    },
     "OK" : {
 
     },
@@ -3579,6 +3602,7 @@
       }
     },
     "paywall.actions_total" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3608,6 +3632,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld ações no total"
+          }
+        }
+      }
+    },
+    "paywall.cancelled_active.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your current plan remains active until %@. You can resubscribe now to avoid any interruption."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre plan actuel reste actif jusqu'au %@. Vous pouvez vous réabonner maintenant pour éviter toute interruption."
+          }
+        }
+      }
+    },
+    "paywall.cancelled_active.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your subscription has been cancelled"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre abonnement a été annulé"
           }
         }
       }
@@ -3642,38 +3698,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fechar"
-          }
-        }
-      }
-    },
-    "paywall.cancelled_active.message" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your current plan remains active until %@. You can resubscribe now to avoid any interruption."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre plan actuel reste actif jusqu'au %@. Vous pouvez vous réabonner maintenant pour éviter toute interruption."
-          }
-        }
-      }
-    },
-    "paywall.cancelled_active.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your subscription has been cancelled"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre abonnement a été annulé"
           }
         }
       }
@@ -3776,6 +3800,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Produto não encontrado. Tente novamente."
+          }
+        }
+      }
+    },
+    "paywall.manage_subscription" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage subscription"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gérer l'abonnement"
           }
         }
       }
@@ -4596,6 +4636,134 @@
         }
       }
     },
+    "paywall.upgrade.button" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade to Pro"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passer à Pro"
+          }
+        }
+      }
+    },
+    "paywall.upgrade.feature_actions" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "500 actions per day (10x more)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "500 actions par jour (10x plus)"
+          }
+        }
+      }
+    },
+    "paywall.upgrade.feature_history" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlimited history"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Historique illimité"
+          }
+        }
+      }
+    },
+    "paywall.upgrade.feature_tone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tone & style options"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Options de ton et style"
+          }
+        }
+      }
+    },
+    "paywall.upgrade.price" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ / month"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ / mois"
+          }
+        }
+      }
+    },
+    "paywall.upgrade.quota_reached" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've reached your daily limit"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous avez atteint votre limite quotidienne"
+          }
+        }
+      }
+    },
+    "paywall.upgrade.success" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Successfully upgraded to Pro!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passage à Pro réussi !"
+          }
+        }
+      }
+    },
+    "paywall.upgrade.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade to Poli Pro"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passer à Poli Pro"
+          }
+        }
+      }
+    },
     "picker.target_language" : {
       "localizations" : {
         "en" : {
@@ -4812,40 +4980,6 @@
         }
       }
     },
-    "settings.about.header" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "About"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Acerca de"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "À propos"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Informazioni"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sobre"
-          }
-        }
-      }
-    },
     "settings.about.contact" : {
       "localizations" : {
         "en" : {
@@ -4876,6 +5010,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Contacte-nos"
+          }
+        }
+      }
+    },
+    "settings.about.header" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acerca de"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À propos"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informazioni"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sobre"
           }
         }
       }
@@ -5116,6 +5284,22 @@
         }
       }
     },
+    "settings.account.grace_period_message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A payment issue is being resolved."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un problème de paiement est en cours de résolution."
+          }
+        }
+      }
+    },
     "settings.account.header" : {
       "localizations" : {
         "en" : {
@@ -5150,22 +5334,6 @@
         }
       }
     },
-    "settings.account.grace_period_message" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A payment issue is being resolved."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un problème de paiement est en cours de résolution."
-          }
-        }
-      }
-    },
     "settings.account.logout" : {
       "localizations" : {
         "en" : {
@@ -5196,6 +5364,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sair"
+          }
+        }
+      }
+    },
+    "settings.account.manage_subscription" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage subscription"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gérer l'abonnement"
           }
         }
       }
@@ -5246,6 +5430,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Subscrever"
+          }
+        }
+      }
+    },
+    "settings.account.upgrade_to_pro" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade to Pro"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passer à Pro"
           }
         }
       }
@@ -5896,9 +6096,6 @@
         }
       }
     },
-    "Starter" : {
-
-    },
     "shortcut.recording_prompt" : {
       "localizations" : {
         "en" : {
@@ -5932,6 +6129,9 @@
           }
         }
       }
+    },
+    "Starter" : {
+
     },
     "tab.correct" : {
       "localizations" : {
