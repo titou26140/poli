@@ -196,9 +196,23 @@ private struct BannerContentView: View {
                 .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text("banner.copied")
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
+            HStack(spacing: 6) {
+                Image(systemName: "doc.on.clipboard")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+
+                Text("banner.paste_hint")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+
+                Text("\u{2318}V")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color.poliPrimary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.poliPrimary.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            }
         }
     }
 

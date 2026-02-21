@@ -1,120 +1,63 @@
 import AppKit
 import HotKey
 
-/// Manages global keyboard shortcuts for grammar correction and translation actions.
+/// Manages global keyboard shortcuts for correction and translation actions.
 ///
-/// Uses the `HotKey` package (https://github.com/soffes/HotKey) to register system-wide
-/// keyboard shortcuts that work regardless of which application is in the foreground.
-///
-/// Shortcuts are persisted in UserDefaults and can be customized by the user.
+/// Persists custom key combos to UserDefaults and restores them on launch.
+/// Defaults: Option+Shift+C (correction), Option+Shift+T (translation).
 final class HotKeyService {
 
     static let shared = HotKeyService()
 
-    // MARK: - Default Key Combos
+    // MARK: - Default Combos
 
     static let defaultCorrectionCombo = KeyCombo(key: .c, modifiers: [.option, .shift])
     static let defaultTranslationCombo = KeyCombo(key: .t, modifiers: [.option, .shift])
 
     // MARK: - Callbacks
 
-    /// Called when the correction shortcut is pressed.
     var onCorrectionTriggered: (() -> Void)?
-
-    /// Called when the translation shortcut is pressed.
     var onTranslationTriggered: (() -> Void)?
 
     // MARK: - Current Combos
 
-    /// The currently active correction key combo.
-    private(set) var correctionCombo: KeyCombo = defaultCorrectionCombo
+    private(set) var correctionCombo: KeyCombo
+    private(set) var translationCombo: KeyCombo
 
-    /// The currently active translation key combo.
-    private(set) var translationCombo: KeyCombo = defaultTranslationCombo
-
-    // MARK: - Private State
+    // MARK: - HotKey Instances
 
     private var correctionHotKey: HotKey?
     private var translationHotKey: HotKey?
 
-    private init() {}
+    // MARK: - Init
 
-    // MARK: - Public API
+    private init() {
+        correctionCombo = Self.loadCombo(
+            keyCodeKey: Constants.UserDefaultsKey.correctionShortcutKeyCode,
+            modifiersKey: Constants.UserDefaultsKey.correctionShortcutModifiers,
+            default: Self.defaultCorrectionCombo
+        )
+        translationCombo = Self.loadCombo(
+            keyCodeKey: Constants.UserDefaultsKey.translationShortcutKeyCode,
+            modifiersKey: Constants.UserDefaultsKey.translationShortcutModifiers,
+            default: Self.defaultTranslationCombo
+        )
+    }
 
-    /// Registers global keyboard shortcuts from UserDefaults, falling back to defaults.
-    ///
-    /// Any previously registered shortcuts are unregistered first to avoid duplicates.
+    // MARK: - Registration
+
+    /// Register hotkeys using the current combos (loaded from UserDefaults or defaults).
     func register() {
-        let defaults = UserDefaults.standard
-
-        let corrKeyCode: UInt32
-        let corrModifiers: UInt32
-        if defaults.object(forKey: Constants.UserDefaultsKey.correctionShortcutKeyCode) != nil {
-            corrKeyCode = UInt32(defaults.integer(forKey: Constants.UserDefaultsKey.correctionShortcutKeyCode))
-            corrModifiers = UInt32(defaults.integer(forKey: Constants.UserDefaultsKey.correctionShortcutModifiers))
-        } else {
-            corrKeyCode = Self.defaultCorrectionCombo.carbonKeyCode
-            corrModifiers = Self.defaultCorrectionCombo.carbonModifiers
-        }
-
-        let transKeyCode: UInt32
-        let transModifiers: UInt32
-        if defaults.object(forKey: Constants.UserDefaultsKey.translationShortcutKeyCode) != nil {
-            transKeyCode = UInt32(defaults.integer(forKey: Constants.UserDefaultsKey.translationShortcutKeyCode))
-            transModifiers = UInt32(defaults.integer(forKey: Constants.UserDefaultsKey.translationShortcutModifiers))
-        } else {
-            transKeyCode = Self.defaultTranslationCombo.carbonKeyCode
-            transModifiers = Self.defaultTranslationCombo.carbonModifiers
-        }
-
-        registerWithCodes(
-            correctionKeyCode: corrKeyCode,
-            correctionModifiers: corrModifiers,
-            translationKeyCode: transKeyCode,
-            translationModifiers: transModifiers
+        register(
+            correctionKeyCode: correctionCombo.carbonKeyCode,
+            correctionModifiers: correctionCombo.carbonModifiers,
+            translationKeyCode: translationCombo.carbonKeyCode,
+            translationModifiers: translationCombo.carbonModifiers
         )
     }
 
-    /// Persists new shortcuts to UserDefaults and registers them.
+    /// Register hotkeys with specific key codes and modifiers. Saves to UserDefaults.
     func register(
-        correctionKeyCode: UInt32,
-        correctionModifiers: UInt32,
-        translationKeyCode: UInt32,
-        translationModifiers: UInt32
-    ) {
-        let defaults = UserDefaults.standard
-        defaults.set(Int(correctionKeyCode), forKey: Constants.UserDefaultsKey.correctionShortcutKeyCode)
-        defaults.set(Int(correctionModifiers), forKey: Constants.UserDefaultsKey.correctionShortcutModifiers)
-        defaults.set(Int(translationKeyCode), forKey: Constants.UserDefaultsKey.translationShortcutKeyCode)
-        defaults.set(Int(translationModifiers), forKey: Constants.UserDefaultsKey.translationShortcutModifiers)
-
-        registerWithCodes(
-            correctionKeyCode: correctionKeyCode,
-            correctionModifiers: correctionModifiers,
-            translationKeyCode: translationKeyCode,
-            translationModifiers: translationModifiers
-        )
-    }
-
-    /// Resets shortcuts to defaults, clears UserDefaults, and re-registers.
-    func resetToDefaults() {
-        let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: Constants.UserDefaultsKey.correctionShortcutKeyCode)
-        defaults.removeObject(forKey: Constants.UserDefaultsKey.correctionShortcutModifiers)
-        defaults.removeObject(forKey: Constants.UserDefaultsKey.translationShortcutKeyCode)
-        defaults.removeObject(forKey: Constants.UserDefaultsKey.translationShortcutModifiers)
-        register()
-    }
-
-    /// Unregisters all global keyboard shortcuts and releases resources.
-    func unregister() {
-        correctionHotKey = nil
-        translationHotKey = nil
-    }
-
-    // MARK: - Private
-
-    private func registerWithCodes(
         correctionKeyCode: UInt32,
         correctionModifiers: UInt32,
         translationKeyCode: UInt32,
@@ -122,16 +65,59 @@ final class HotKeyService {
     ) {
         unregister()
 
-        correctionCombo = KeyCombo(carbonKeyCode: correctionKeyCode, carbonModifiers: correctionModifiers)
-        correctionHotKey = HotKey(keyCombo: correctionCombo)
+        let corrCombo = KeyCombo(carbonKeyCode: correctionKeyCode, carbonModifiers: correctionModifiers)
+        let transCombo = KeyCombo(carbonKeyCode: translationKeyCode, carbonModifiers: translationModifiers)
+
+        correctionCombo = corrCombo
+        translationCombo = transCombo
+
+        saveCombo(corrCombo,
+                  keyCodeKey: Constants.UserDefaultsKey.correctionShortcutKeyCode,
+                  modifiersKey: Constants.UserDefaultsKey.correctionShortcutModifiers)
+        saveCombo(transCombo,
+                  keyCodeKey: Constants.UserDefaultsKey.translationShortcutKeyCode,
+                  modifiersKey: Constants.UserDefaultsKey.translationShortcutModifiers)
+
+        correctionHotKey = HotKey(keyCombo: corrCombo)
         correctionHotKey?.keyDownHandler = { [weak self] in
             self?.onCorrectionTriggered?()
         }
 
-        translationCombo = KeyCombo(carbonKeyCode: translationKeyCode, carbonModifiers: translationModifiers)
-        translationHotKey = HotKey(keyCombo: translationCombo)
+        translationHotKey = HotKey(keyCombo: transCombo)
         translationHotKey?.keyDownHandler = { [weak self] in
             self?.onTranslationTriggered?()
         }
+    }
+
+    /// Unregister all hotkeys.
+    func unregister() {
+        correctionHotKey = nil
+        translationHotKey = nil
+    }
+
+    /// Reset shortcuts to defaults and re-register.
+    func resetToDefaults() {
+        register(
+            correctionKeyCode: Self.defaultCorrectionCombo.carbonKeyCode,
+            correctionModifiers: Self.defaultCorrectionCombo.carbonModifiers,
+            translationKeyCode: Self.defaultTranslationCombo.carbonKeyCode,
+            translationModifiers: Self.defaultTranslationCombo.carbonModifiers
+        )
+    }
+
+    // MARK: - Persistence
+
+    private static func loadCombo(keyCodeKey: String, modifiersKey: String, default fallback: KeyCombo) -> KeyCombo {
+        let defaults = UserDefaults.standard
+        guard defaults.object(forKey: keyCodeKey) != nil else { return fallback }
+        let keyCode = UInt32(defaults.integer(forKey: keyCodeKey))
+        let modifiers = UInt32(defaults.integer(forKey: modifiersKey))
+        return KeyCombo(carbonKeyCode: keyCode, carbonModifiers: modifiers)
+    }
+
+    private func saveCombo(_ combo: KeyCombo, keyCodeKey: String, modifiersKey: String) {
+        let defaults = UserDefaults.standard
+        defaults.set(Int(combo.carbonKeyCode), forKey: keyCodeKey)
+        defaults.set(Int(combo.carbonModifiers), forKey: modifiersKey)
     }
 }

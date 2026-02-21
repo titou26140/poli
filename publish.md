@@ -125,26 +125,22 @@ WHAT POLI DOES
 
 Poli is a macOS menu bar utility for AI-powered grammar correction and text translation. It reads selected text from the frontmost application using a global keyboard shortcut, sends it to our backend API for processing, and pastes the corrected or translated result back.
 
-WHY POLI IS NOT SANDBOXED
+HOW POLI ACCESSES TEXT
 
-Poli requires two capabilities that are incompatible with the App Sandbox:
+Poli uses CGEvent with .cgAnnotatedSessionEventTap to simulate Cmd+C (copy selected text from the frontmost application) and Cmd+V (paste the corrected or translated result back). No AppleScript or Apple Events are used for text access.
 
-1. Accessibility / System Events (AppleScript): Poli uses System Events to simulate Cmd+C and Cmd+V keystrokes in the frontmost application. This is how Poli reads the user's selected text and pastes the corrected result back. The App Sandbox blocks inter-application AppleScript automation.
+Global keyboard shortcuts (Option+Shift+C for correction, Option+Shift+T for translation) are registered via the HotKey library (which uses the Carbon RegisterEventHotKey API internally).
 
-2. Global keyboard shortcuts: Poli registers system-wide hotkeys (Option+Shift+C for correction, Option+Shift+T for translation) that must work regardless of which application is in the foreground.
-
-Both capabilities are core to the app's functionality and cannot be achieved within a sandbox.
+The app is fully sandboxed.
 
 PERMISSIONS REQUESTED
 
-- Accessibility (AX API): Required to register global keyboard shortcuts and to read selected text via System Events. The app prompts the user during onboarding with a clear explanation before the system dialog appears ("permission priming").
-
-- Automation / Apple Events (NSAppleEventsUsageDescription): Required for the AppleScript commands that simulate Cmd+C (copy selected text) and Cmd+V (paste result).
+- Accessibility: Required so that CGEvent key simulation (Cmd+C / Cmd+V) can target the frontmost application, and to register global keyboard shortcuts. The user is prompted during onboarding with a clear explanation before being directed to System Settings > Privacy & Security > Accessibility.
 
 TEST ACCOUNT
 
 Email: review@poli-app.com
-Password: [INSERT PASSWORD HERE]
+Password: fDCTgo59RAD6W5WH
 
 TESTING STEPS
 
@@ -168,13 +164,13 @@ The free tier allows 10 total actions (lifetime) with 4 languages (English, Fren
 
 ## 5. Checklist before submission
 
-- [ ] Create a test account `review@poli-app.com` on the backend and insert the password above
-- [ ] Verify https://poli-app.com/en/privacy is live and accessible
-- [ ] Verify https://poli-app.com/en/terms is live and accessible
-- [ ] Add the 1024x1024 App Store icon to `AppIcon.appiconset`
-- [ ] Set Developer Team ID in Xcode (Signing & Capabilities)
-- [ ] Set Developer Team ID in `Poli.storekit` (`_developerTeamID` field)
-- [ ] Prepare App Store screenshots (at least 1280x800 or 2560x1600)
-- [ ] Test in-app purchases in sandbox environment
+- [x] Create a test account `review@poli-app.com` on the backend and insert the password above
+- [x] Verify https://poli-app.com/en/privacy is live and accessible
+- [x] Verify https://poli-app.com/en/terms is live and accessible
+- [x] Add the 1024x1024 App Store icon to `AppIcon.appiconset`
+- [x] Set Developer Team ID in Xcode (Signing & Capabilities)
+- [x] Set Developer Team ID in `Poli.storekit` (`_developerTeamID` field)
+- [x] Prepare App Store screenshots (at least 1280x800 or 2560x1600) — 4 pages × 3 langues (EN, FR, ES)
+- [x] Test in-app purchases in sandbox environment
 - [ ] Submit a TestFlight build and verify the full flow
-- [ ] Create the app record in App Store Connect with all metadata above
+- [x] Create the app record in App Store Connect with all metadata above

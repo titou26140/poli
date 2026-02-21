@@ -16,9 +16,6 @@ struct SettingsView: View {
     @AppStorage(Constants.UserDefaultsKey.userLanguage)
     private var userLanguageCode: String = "fr"
 
-    @AppStorage("autoPasteEnabled")
-    private var autoPasteEnabled: Bool = true
-
     @AppStorage(Constants.UserDefaultsKey.appLanguage)
     private var appLanguageCode: String = AppLanguage.detected.rawValue
 
@@ -382,6 +379,14 @@ struct SettingsView: View {
             }
         } header: {
             Text("settings.shortcuts.header")
+        } footer: {
+            HStack(spacing: 6) {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 10))
+                Text("settings.shortcuts.tip")
+                    .font(.system(size: 11))
+            }
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -418,17 +423,6 @@ struct SettingsView: View {
             .onChange(of: launchAtLogin) {
                 toggleLaunchAtLogin(launchAtLogin)
             }
-
-            Toggle(isOn: $autoPasteEnabled) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("settings.general.auto_paste_title")
-                        .font(.system(size: 13))
-                    Text("settings.general.auto_paste_description")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .focusable(false)
         } header: {
             Text("settings.general.header")
         }

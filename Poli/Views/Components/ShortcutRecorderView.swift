@@ -1,104 +1,78 @@
+import AppKit
+import Carbon
 import HotKey
 import SwiftUI
 
-/// A shortcut recorder that captures a keyboard shortcut from the user.
+/// A view that captures a global keyboard shortcut from the user.
 ///
-/// Displays the current shortcut as a badge (e.g. "⌥⇧C"). When clicked,
-/// enters recording mode and captures the next key event with at least one
-/// modifier (⌘, ⌥, ⌃). Press Escape to cancel recording.
+/// Displays the current key combo and enters recording mode on click.
+/// While recording, the next modifier+key press is captured and reported
+/// via the `onChange` callback.
 struct ShortcutRecorderView: View {
 
     let keyCode: UInt32
     let modifiers: UInt32
-    let onShortcutRecorded: (_ keyCode: UInt32, _ modifiers: UInt32) -> Void
+    let onChange: (UInt32, UInt32) -> Void
 
     @State private var isRecording = false
     @State private var eventMonitor: Any?
 
     private var displayText: String {
-        KeyCombo(carbonKeyCode: keyCode, carbonModifiers: modifiers).description
+        if isRecording {
+            return String(localized: "settings.shortcuts.recording")
+        }
+        return KeyCombo(carbonKeyCode: keyCode, carbonModifiers: modifiers).description
     }
 
     var body: some View {
-        Button {
-            if !isRecording {
-                startRecording()
+        Text(displayText)
+            .font(.system(size: 13, weight: .semibold, design: .monospaced))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(isRecording ? Color.accentColor.opacity(0.15) : Color.primary.opacity(0.06))
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(isRecording ? Color.accentColor : Color.clear, lineWidth: 1)
+            )
+            .onTapGesture {
+                if isRecording {
+                    stopRecording()
+                } else {
+                    startRecording()
+                }
             }
-        } label: {
-            Text(isRecording ? String(localized: "shortcut.recording_prompt") : displayText)
-                .font(.system(
-                    size: 13,
-                    weight: isRecording ? .regular : .semibold,
-                    design: .monospaced
-                ))
-                .foregroundStyle(isRecording ? .secondary : .primary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(isRecording
-                              ? Color.poliPrimary.opacity(0.1)
-                              : Color.primary.opacity(0.06))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .strokeBorder(
-                            isRecording
-                                ? Color.poliPrimary
-                                : Color.clear,
-                            lineWidth: 1.5
-                        )
-                )
-                .animation(.easeInOut(duration: 0.15), value: isRecording)
-        }
-        .buttonStyle(.plain)
-        .focusable(false)
-        .onDisappear {
-            if isRecording {
-                cancelRecording()
+            .onDisappear {
+                stopRecording()
             }
-        }
     }
 
-    // MARK: - Recording
-
     private func startRecording() {
-        HotKeyService.shared.unregister()
         isRecording = true
 
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+
             // Escape cancels recording
-            if event.keyCode == 53 { // kVK_Escape
-                cancelRecording()
+            if event.keyCode == UInt16(kVK_Escape) {
+                stopRecording()
                 return nil
             }
 
-            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-            let hasModifier = flags.contains(.command)
-                || flags.contains(.option)
-                || flags.contains(.control)
+            // Require at least one modifier
+            guard !flags.isEmpty else { return nil }
 
-            // Require at least one real modifier (shift alone is not enough)
-            guard hasModifier else { return nil }
+            let carbonMods = NSEvent.ModifierFlags(rawValue: flags.rawValue).carbonFlags
+            let carbonKey = UInt32(event.keyCode)
 
-            let carbonMods = flags.carbonFlags
-            let capturedKeyCode = UInt32(event.keyCode)
-
-            stopMonitor()
-            isRecording = false
-            onShortcutRecorded(capturedKeyCode, carbonMods)
-
+            stopRecording()
+            onChange(carbonKey, carbonMods)
             return nil
         }
     }
 
-    private func cancelRecording() {
-        stopMonitor()
+    private func stopRecording() {
         isRecording = false
-        HotKeyService.shared.register()
-    }
-
-    private func stopMonitor() {
         if let monitor = eventMonitor {
             NSEvent.removeMonitor(monitor)
             eventMonitor = nil

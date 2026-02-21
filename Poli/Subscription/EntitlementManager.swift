@@ -38,9 +38,6 @@ final class EntitlementManager: ObservableObject {
     /// The usage limit for the current tier.
     var usageLimit: Int { currentTier.usageLimit }
 
-    /// Remaining actions (synced from backend via UsageTracker).
-    @Published var remainingActions: Int = 0
-
     /// The subscription lifecycle status from the backend.
     @Published var subscriptionStatus: SubscriptionStatus = .none {
         didSet {
@@ -65,9 +62,8 @@ final class EntitlementManager: ObservableObject {
         if let cached = UserDefaults.standard.string(forKey: Constants.UserDefaultsKey.cachedSubscriptionTier),
            let tier = SubscriptionTier(rawValue: cached) {
             self.currentTier = tier
-            self.remainingActions = UsageTracker.shared.remainingActions
             #if DEBUG
-            print("[EntitlementManager] Restored cached tier: \(tier.rawValue), remaining: \(self.remainingActions)")
+            print("[EntitlementManager] Restored cached tier: \(tier.rawValue)")
             #endif
         }
 
@@ -90,7 +86,6 @@ final class EntitlementManager: ObservableObject {
     /// Resets all entitlement state on logout.
     func reset() {
         currentTier = .free
-        remainingActions = 0
         subscriptionStatus = .none
         expiresAt = nil
         cancelledAt = nil
@@ -106,7 +101,6 @@ final class EntitlementManager: ObservableObject {
         cancelledAt: Date? = nil
     ) {
         self.currentTier = tier
-        self.remainingActions = remainingActions
         self.subscriptionStatus = tier.isPaid ? status : .none
         self.expiresAt = expiresAt
         self.cancelledAt = cancelledAt

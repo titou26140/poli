@@ -28,23 +28,4 @@ final class LanguageDetectionService {
         return recognizer.dominantLanguage?.rawValue ?? "unknown"
     }
 
-    /// Detects the dominant language together with a confidence score.
-    ///
-    /// - Parameter text: The text to analyze.
-    /// - Returns: A tuple containing the ISO 639-1 language code and the
-    ///   confidence value (0.0 ... 1.0). Returns `("unknown", 0.0)` when the
-    ///   language cannot be determined.
-    func detectWithConfidence(text: String) -> (language: String, confidence: Double) {
-        recognizer.reset()
-        recognizer.processString(text)
-
-        guard let dominant = recognizer.dominantLanguage else {
-            return ("unknown", 0.0)
-        }
-
-        let hypotheses = recognizer.languageHypotheses(withMaximum: 1)
-        let confidence = hypotheses[dominant] ?? 0.0
-
-        return (dominant.rawValue, confidence)
-    }
 }

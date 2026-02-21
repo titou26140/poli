@@ -1,4 +1,3 @@
-import ApplicationServices
 import SwiftUI
 import UserNotifications
 
@@ -17,16 +16,14 @@ struct OnboardingView: View {
     // MARK: - Constants
 
     private let warningColor = Color(red: 0xF5 / 255.0, green: 0xA6 / 255.0, blue: 0x23 / 255.0)
-    private let totalSteps = 6
+    private let totalSteps = 5
 
     // MARK: - State
 
     @State private var currentStep: Int = 0
     @State private var selectedUserLanguage: SupportedLanguage = .french
     @State private var selectedTargetLanguage: SupportedLanguage = .english
-    @State private var accessibilityGranted: Bool = AXIsProcessTrusted()
     @State private var notificationsGranted: Bool = false
-    @State private var accessibilityCheckTask: Task<Void, Never>?
     @State private var notificationTask: Task<Void, Never>?
 
     @AppStorage(Constants.UserDefaultsKey.targetLanguage)
@@ -50,10 +47,9 @@ struct OnboardingView: View {
                     switch currentStep {
                     case 0: welcomeStep
                     case 1: howItWorksStep
-                    case 2: accessibilityStep
-                    case 3: notificationsStep
-                    case 4: userLanguageStep
-                    case 5: targetLanguageStep
+                    case 2: notificationsStep
+                    case 3: userLanguageStep
+                    case 4: targetLanguageStep
                     default: welcomeStep
                     }
                 }
@@ -95,7 +91,6 @@ struct OnboardingView: View {
             await checkNotificationStatus()
         }
         .onDisappear {
-            accessibilityCheckTask?.cancel()
             notificationTask?.cancel()
         }
     }
@@ -194,6 +189,21 @@ struct OnboardingView: View {
                 )
             }
 
+            // Clipboard tip
+            HStack(spacing: 10) {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.poliPrimary)
+
+                Text("onboarding.how.clipboard_tip")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .lineSpacing(2)
+            }
+            .padding(12)
+            .background(Color.poliPrimary.opacity(0.06))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+
             Spacer()
         }
         .padding(40)
@@ -223,89 +233,7 @@ struct OnboardingView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
-    // MARK: - Step 3: Accessibility Permission
-
-    private var accessibilityStep: some View {
-        VStack(spacing: 24) {
-            Spacer()
-
-            // Status badge
-            permissionStatusBadge(
-                granted: accessibilityGranted,
-                emoji: "\u{1F50F}",
-                grantedText: String(localized: "onboarding.accessibility.enabled"),
-                missingText: String(localized: "onboarding.accessibility.required")
-            )
-
-            VStack(spacing: 10) {
-                Text("onboarding.accessibility.needed")
-                    .font(.system(size: 22, weight: .bold))
-                    .multilineTextAlignment(.center)
-
-                Text("onboarding.accessibility.explanation")
-                    .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(2)
-            }
-
-            // Explanation cards
-            VStack(spacing: 10) {
-                reasonCard(
-                    emoji: "\u{1F4C4}",
-                    text: String(localized: "onboarding.accessibility.read_text")
-                )
-                reasonCard(
-                    emoji: "\u{1F4CB}",
-                    text: String(localized: "onboarding.accessibility.auto_paste")
-                )
-                reasonCard(
-                    emoji: "\u{1F512}",
-                    text: String(localized: "onboarding.accessibility.no_data")
-                )
-            }
-
-            if accessibilityGranted {
-                HStack(spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(Color.poliSuccess)
-                    Text("onboarding.accessibility.granted")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color.poliSuccess)
-                }
-                .padding(.top, 4)
-            } else {
-                Button {
-                    requestAccessibility()
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "lock.open")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text("onboarding.accessibility.authorize")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 28)
-                    .padding(.vertical, 12)
-                    .background(Color.poliPrimary)
-                    .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
-                .focusable(false)
-            }
-
-            Text("onboarding.accessibility.changeable")
-                .font(.system(size: 11))
-                .foregroundStyle(.quaternary)
-                .multilineTextAlignment(.center)
-
-            Spacer()
-        }
-        .padding(40)
-    }
-
-    // MARK: - Step 4: Notifications Permission
+    // MARK: - Step 3: Notifications Permission
 
     private var notificationsStep: some View {
         VStack(spacing: 24) {
@@ -647,29 +575,6 @@ struct OnboardingView: View {
         hasCompletedOnboarding = true
         NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
         dismiss()
-    }
-
-    private func requestAccessibility() {
-        // Try the system prompt first
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
-        AXIsProcessTrustedWithOptions(options)
-
-        // Also open System Settings directly as a fallback (sandbox may block the prompt)
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            NSWorkspace.shared.open(url)
-        }
-
-        accessibilityCheckTask?.cancel()
-        accessibilityCheckTask = Task {
-            for _ in 0..<120 {
-                try? await Task.sleep(for: .seconds(1))
-                guard !Task.isCancelled else { return }
-                if AXIsProcessTrusted() {
-                    withAnimation { accessibilityGranted = true }
-                    return
-                }
-            }
-        }
     }
 
     private func requestNotifications() {

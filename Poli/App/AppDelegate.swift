@@ -1,5 +1,4 @@
 import AppKit
-import ApplicationServices
 import SwiftUI
 import UserNotifications
 
@@ -287,16 +286,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         )
 
         if hasCompleted {
-            // Onboarding already completed — check if permissions are still OK.
-            let accessibilityOK = AXIsProcessTrusted()
-
-            if !accessibilityOK {
-                // Re-show onboarding starting at the accessibility step.
-                presentOnboarding(initialStep: 2)
-            } else {
-                // All good — restore session now.
-                AuthManager.shared.restoreSession()
-            }
+            AuthManager.shared.restoreSession()
             return
         }
 
@@ -332,24 +322,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     // MARK: - Shared Action Flow
 
-    /// Common flow for hotkey-triggered actions: get selected text, check
-    /// entitlement, show loader, execute, write to clipboard, auto-paste,
+    /// Common flow for hotkey-triggered actions: read clipboard, check
+    /// entitlement, show loader, execute, write result to clipboard,
     /// show banner, handle errors.
     @MainActor
     private func performAction(
-        type: ActionType,
         loaderMessage: String,
         execute: (String) async throws -> (text: String, banner: () -> Void)
     ) async {
-        guard AXIsProcessTrusted() else {
-            NotificationService.shared.send(
-                title: "Poli",
-                body: String(localized: "notification.accessibility_required")
-            )
-            return
-        }
-
-        let text = await ClipboardService.shared.getSelectedText() ?? ""
+        let text = ClipboardService.shared.readIfAvailable() ?? ""
         guard !text.isEmpty else {
             NotificationService.shared.send(
                 title: "Poli",
@@ -367,7 +348,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return
         }
 
-        appState.startAction(type)
         LoaderPanel.show(message: loaderMessage)
 
         do {
@@ -375,16 +355,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
             LoaderPanel.dismiss()
             ClipboardService.shared.write(result.text)
-            await PasteService.shared.pasteIfTextFieldActive()
             result.banner()
-            appState.completeAction(with: result.text)
         } catch {
             LoaderPanel.dismiss()
             NotificationService.shared.send(
                 title: "Poli -- Error",
                 body: error.localizedDescription
             )
-            appState.failAction(with: error)
         }
     }
 
@@ -393,7 +370,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @MainActor
     private func handleCorrection() async {
         await performAction(
-            type: .correction,
             loaderMessage: String(localized: "loader.correction")
         ) { text in
             let result = try await GrammarService.shared.correct(text: text)
@@ -420,7 +396,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @MainActor
     private func handleTranslation() async {
         await performAction(
-            type: .translation,
             loaderMessage: String(localized: "loader.translation")
         ) { text in
             let targetLanguage = UserDefaults.standard

@@ -48,6 +48,7 @@ struct PaywallView: View {
                         planSelector
                         subscribeButton
                         restoreLink
+                        legalFooter
                     }
                 }
                 .padding(28)
@@ -120,6 +121,7 @@ struct PaywallView: View {
             planSelector
             subscribeButton
             restoreLink
+            legalFooter
         }
     }
 
@@ -273,6 +275,7 @@ struct PaywallView: View {
             }
 
             manageSubscriptionLink
+            legalFooter
         }
     }
 
@@ -499,6 +502,27 @@ struct PaywallView: View {
         }
         .buttonStyle(.plain)
         .focusable(false)
+    }
+
+    // MARK: - Legal Footer
+
+    private var legalFooter: some View {
+        VStack(spacing: 6) {
+            Text("paywall.legal.auto_renew")
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+
+            HStack(spacing: 4) {
+                Link(String(localized: "paywall.legal.privacy"), destination: URL(string: "https://poli-app.com/en/privacy")!)
+                Text("·")
+                    .foregroundStyle(.tertiary)
+                Link(String(localized: "paywall.legal.terms"), destination: URL(string: "https://poli-app.com/en/terms")!)
+            }
+            .font(.system(size: 10))
+            .foregroundStyle(.secondary)
+        }
+        .padding(.top, 4)
     }
 
     // MARK: - Purchase Logic

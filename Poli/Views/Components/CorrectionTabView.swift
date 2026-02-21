@@ -109,7 +109,6 @@ struct CorrectionTabView: View {
 
                 Button {
                     ClipboardService.shared.write(corrected)
-                    Task { await PasteService.shared.pasteIfTextFieldActive() }
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "doc.on.doc")

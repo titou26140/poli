@@ -24,6 +24,9 @@
         }
       }
     },
+    "⌘V" : {
+
+    },
     "✏️" : {
 
     },
@@ -481,36 +484,36 @@
         }
       }
     },
-    "banner.copied" : {
+    "banner.paste_hint" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copied to clipboard"
+            "value" : "Paste with"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copiado al portapapeles"
+            "value" : "Pegar con"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copié dans le presse-papier"
+            "value" : "Coller avec"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copiato negli appunti"
+            "value" : "Incolla con"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copiado para a área de transferência"
+            "value" : "Colar com"
           }
         }
       }
@@ -2011,40 +2014,6 @@
         }
       }
     },
-    "notification.accessibility_required" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accessibility permission required. Please enable it in System Settings."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se requiere permiso de accesibilidad. Actívalo en Ajustes del Sistema."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permission d'accessibilité requise. Activez-la dans les Réglages Système."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autorizzazione di accessibilità richiesta. Abilitala nelle Impostazioni di Sistema."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permissão de acessibilidade necessária. Ative-a nas Definições do Sistema."
-          }
-        }
-      }
-    },
     "notification.limit_reached" : {
       "localizations" : {
         "en" : {
@@ -2084,54 +2053,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No text selected"
+            "value" : "No text in clipboard. Copy text first with ⌘C."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ningún texto seleccionado"
+            "value" : "No hay texto en el portapapeles. Copia texto primero con ⌘C."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aucun texte sélectionné"
+            "value" : "Aucun texte dans le presse-papiers. Copiez du texte avec ⌘C."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nessun testo selezionato"
+            "value" : "Nessun testo negli appunti. Copia il testo con ⌘C."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nenhum texto selecionado"
-          }
-        }
-      }
-    },
-    "notification.result_in_clipboard" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Result copied to clipboard. Press Cmd+V to paste."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resultado copiado al portapapeles. Presiona Cmd+V para pegar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Résultat copié dans le presse-papiers. Appuyez sur Cmd+V pour coller."
+            "value" : "Nenhum texto na área de transferência. Copie o texto com ⌘C."
           }
         }
       }
@@ -2139,342 +2085,36 @@
     "OK" : {
 
     },
-    "onboarding.accessibility.authorize" : {
+    "onboarding.how.clipboard_tip" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Authorize access"
+            "value" : "Poli works with your clipboard: copy text with ⌘C, then use the shortcut to correct or translate it."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Autorizar el acceso"
+            "value" : "Poli usa tu portapapeles: copia el texto con ⌘C, luego usa el atajo para corregirlo o traducirlo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Autoriser l'accès"
+            "value" : "Poli agit sur votre presse-papiers : copiez du texte avec ⌘C, puis utilisez le raccourci pour le corriger ou le traduire."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Autorizza l'accesso"
+            "value" : "Poli usa i tuoi appunti: copia il testo con ⌘C, poi usa la scorciatoia per correggerlo o tradurlo."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Autorizar o acesso"
-          }
-        }
-      }
-    },
-    "onboarding.accessibility.auto_paste" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatically paste the result"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pegar automáticamente el resultado"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Coller automatiquement le résultat"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Incollare automaticamente il risultato"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Colar automaticamente o resultado"
-          }
-        }
-      }
-    },
-    "onboarding.accessibility.changeable" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Can be changed anytime in\nSystem Preferences → Privacy"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se puede cambiar en cualquier momento en\nPreferencias del Sistema → Privacidad"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modifiable à tout moment dans\nPréférences Système → Confidentialité"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modificabile in qualsiasi momento in\nPreferenze di Sistema → Privacy"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pode ser alterado a qualquer momento em\nPreferências do Sistema → Privacidade"
-          }
-        }
-      }
-    },
-    "onboarding.accessibility.enabled" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accessibility enabled"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accesibilidad activada"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accessibilité activée"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accessibilità attivata"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Acessibilidade ativada"
-          }
-        }
-      }
-    },
-    "onboarding.accessibility.explanation" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For the magic, Poli needs\n**accessibility access**"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Para la magia, Poli necesita\n**acceso de accesibilidad**"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pour la magie, Poli a besoin de\nl'**accès d'accessibilité**"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Per la magia, Poli ha bisogno\ndell'**accesso di accessibilità**"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Para a magia, Poli precisa do\n**acesso de acessibilidade**"
-          }
-        }
-      }
-    },
-    "onboarding.accessibility.granted" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All good, thanks!"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Todo listo, gracias!"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "C'est bon, merci !"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tutto a posto, grazie!"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tudo certo, obrigado!"
-          }
-        }
-      }
-    },
-    "onboarding.accessibility.needed" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "We need a little help"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Necesitamos una pequeña ayuda"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On a besoin d'un petit coup de pouce"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abbiamo bisogno di un piccolo aiuto"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Precisamos de uma pequena ajuda"
-          }
-        }
-      }
-    },
-    "onboarding.accessibility.no_data" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No data is stored locally"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ningún dato se almacena localmente"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune donnée n'est stockée localement"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nessun dato viene memorizzato localmente"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nenhum dado é armazenado localmente"
-          }
-        }
-      }
-    },
-    "onboarding.accessibility.read_text" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Read the text you select"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Leer el texto que seleccionas"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lire le texte que vous sélectionnez"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Leggere il testo che selezioni"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ler o texto que seleciona"
-          }
-        }
-      }
-    },
-    "onboarding.accessibility.required" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accessibility required"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accesibilidad requerida"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accessibilité requise"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accessibilità richiesta"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Acessibilidade necessária"
+            "value" : "O Poli usa a sua área de transferência: copie o texto com ⌘C, depois use o atalho para corrigir ou traduzir."
           }
         }
       }
@@ -2484,31 +2124,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In any app"
+            "value" : "⌘C in any app"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En cualquier app"
+            "value" : "⌘C en cualquier app"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dans n'importe quelle app"
+            "value" : "⌘C dans n'importe quelle app"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In qualsiasi app"
+            "value" : "⌘C in qualsiasi app"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Em qualquer app"
+            "value" : "⌘C em qualquer app"
           }
         }
       }
@@ -2518,31 +2158,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select some text"
+            "value" : "Copy your text"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selecciona texto"
+            "value" : "Copia tu texto"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sélectionnez du texte"
+            "value" : "Copiez votre texte"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seleziona del testo"
+            "value" : "Copia il tuo testo"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selecione texto"
+            "value" : "Copie o seu texto"
           }
         }
       }
@@ -2620,31 +2260,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The result replaces your text"
+            "value" : "Paste with ⌘V wherever you want"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El resultado reemplaza tu texto"
+            "value" : "Pega con ⌘V donde quieras"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le résultat remplace votre texte"
+            "value" : "Collez avec ⌘V où vous voulez"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Il risultato sostituisce il testo"
+            "value" : "Incolla con ⌘V dove vuoi"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O resultado substitui o seu texto"
+            "value" : "Cole com ⌘V onde quiser"
           }
         }
       }
@@ -2654,31 +2294,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "It's pasted!"
+            "value" : "Result in clipboard!"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Está pegado!"
+            "value" : "¡Resultado en el portapapeles!"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "C'est collé !"
+            "value" : "Résultat dans le presse-papiers !"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "È incollato!"
+            "value" : "Risultato negli appunti!"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Está colado!"
+            "value" : "Resultado na área de transferência!"
           }
         }
       }
@@ -3601,41 +3241,6 @@
         }
       }
     },
-    "paywall.actions_total" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld actions total"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld acciones en total"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld actions au total"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld azioni in totale"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld ações no total"
-          }
-        }
-      }
-    },
     "paywall.cancelled_active.message" : {
       "localizations" : {
         "en" : {
@@ -3800,6 +3405,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Produto não encontrado. Tente novamente."
+          }
+        }
+      }
+    },
+    "paywall.legal.auto_renew" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period. You can manage or cancel your subscription in your App Store account settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las suscripciones se renuevan automáticamente a menos que se cancelen al menos 24 horas antes del final del período actual. Puedes gestionar o cancelar tu suscripción en los ajustes de tu cuenta del App Store."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les abonnements se renouvellent automatiquement sauf annulation au moins 24 heures avant la fin de la période en cours. Vous pouvez gérer ou annuler votre abonnement dans les réglages de votre compte App Store."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gli abbonamenti si rinnovano automaticamente a meno che non vengano annullati almeno 24 ore prima della fine del periodo corrente. Puoi gestire o annullare il tuo abbonamento nelle impostazioni del tuo account App Store."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As subscrições renovam-se automaticamente, exceto se canceladas pelo menos 24 horas antes do final do período atual. Pode gerir ou cancelar a sua subscrição nas definições da sua conta App Store."
+          }
+        }
+      }
+    },
+    "paywall.legal.privacy" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy Policy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidad"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Politique de confidentialité"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informativa sulla privacy"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidade"
+          }
+        }
+      }
+    },
+    "paywall.legal.terms" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms of Use (EULA)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Términos de uso (EULA)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conditions d'utilisation (EULA)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termini di utilizzo (EULA)"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termos de utilização (EULA)"
           }
         }
       }
@@ -5518,74 +5225,6 @@
         }
       }
     },
-    "settings.general.auto_paste_description" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatically paste the result after correction/translation"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pegar automáticamente el resultado después de corrección/traducción"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Coller automatiquement le résultat après correction/traduction"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Incolla automaticamente il risultato dopo correzione/traduzione"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Colar automaticamente o resultado após correção/tradução"
-          }
-        }
-      }
-    },
-    "settings.general.auto_paste_title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auto-paste"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pegado automático"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Collage automatique"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Incolla automatico"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Colagem automática"
-          }
-        }
-      }
-    },
     "settings.general.header" : {
       "localizations" : {
         "en" : {
@@ -5994,6 +5633,9 @@
         }
       }
     },
+    "settings.shortcuts.recording" : {
+
+    },
     "settings.shortcuts.reset" : {
       "localizations" : {
         "en" : {
@@ -6062,6 +5704,40 @@
         }
       }
     },
+    "settings.shortcuts.tip" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy text with ⌘C, then press the shortcut. The clipboard content will be corrected or translated."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia el texto con ⌘C, luego pulsa el atajo. El contenido del portapapeles será corregido o traducido."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiez du texte avec ⌘C, puis appuyez sur le raccourci. C'est le contenu du presse-papiers qui sera corrigé ou traduit."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia il testo con ⌘C, poi premi la scorciatoia. Il contenuto degli appunti verrà corretto o tradotto."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copie o texto com ⌘C, depois pressione o atalho. O conteúdo da área de transferência será corrigido ou traduzido."
+          }
+        }
+      }
+    },
     "settings.title" : {
       "localizations" : {
         "en" : {
@@ -6092,40 +5768,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Definições"
-          }
-        }
-      }
-    },
-    "shortcut.recording_prompt" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Press a shortcut..."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Presiona un atajo..."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appuyez sur un raccourci..."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premi una scorciatoia..."
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prima um atalho..."
           }
         }
       }

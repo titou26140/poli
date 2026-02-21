@@ -159,7 +159,6 @@ struct TranslationTabView: View {
 
                 Button {
                     ClipboardService.shared.write(translated)
-                    Task { await PasteService.shared.pasteIfTextFieldActive() }
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "doc.on.doc")

@@ -31,13 +31,13 @@ Poli is a **macOS menu bar application** for AI-powered grammar correction and t
 
 ### Key Layers
 
-1. **App Layer** (`Poli/App/`): `PoliApp.swift` is the `@main` entry. `AppDelegate` orchestrates the menu bar, popover, hotkeys, and action flows (correction/translation). `AppState` is an `@Observable` class holding transient UI state (loading, results, errors).
+1. **App Layer** (`Poli/App/`): `PoliApp.swift` is the `@main` entry. `AppDelegate` orchestrates the menu bar, popover, hotkeys, and action flows (correction/translation). `AppState` is an `@Observable` class holding shared input text between tabs.
 
 2. **Services** (`Poli/Services/`): All singletons via `static let shared`. This is where most business logic lives:
    - `AIService` — HTTP client for backend `/api/correct` and `/api/translate` endpoints. Bearer token auth from Keychain.
    - `AuthManager` — Login/register/logout, token persistence, user profile sync.
    - `GrammarService` / `TranslationService` — High-level wrappers that validate input (length, emptiness) before calling AIService.
-   - `ClipboardService` — Reads/writes pasteboard. `getSelectedText()` simulates Cmd+C via AppleScript (requires Accessibility permission).
+   - `ClipboardService` — Reads/writes the system pasteboard.
    - `HotKeyService` — Global shortcuts via HotKey SPM package. Defaults: Option+Shift+C (correct), Option+Shift+T (translate).
    - `UsageTracker` — Caches `remaining_actions` from backend. Backend is source of truth; never incremented locally.
    - `HistoryManager` — CRUD operations on correction/translation history via backend API.
@@ -58,7 +58,7 @@ Poli is a **macOS menu bar application** for AI-powered grammar correction and t
 
 ### Action Flow (Correction/Translation via Hotkey)
 
-`AppDelegate.handleCorrection()` → `ClipboardService.getSelectedText()` → `EntitlementManager.canPerformAction()` → `GrammarService.correct()` → `AIService.correctGrammar()` → `ClipboardService.write()` → `PasteService.pasteIfTextFieldActive()` → `ResultBanner.show()`
+`AppDelegate.handleCorrection()` → `ClipboardService.readIfAvailable()` → `EntitlementManager.canPerformAction()` → `GrammarService.correct()` → `AIService.correctGrammar()` → `ClipboardService.write()` → `ResultBanner.show()`
 
 ### Menu Bar Behavior
 
@@ -81,9 +81,8 @@ Every response may include `remaining_actions` which is always synced to `UsageT
 
 ## Entitlements
 
-The app requires two entitlements (`Poli/Poli.entitlements`):
+The app requires this entitlement (`Poli/Poli.entitlements`):
 - `com.apple.security.network.client` — Network access
-- `com.apple.security.automation.apple-events` — AppleScript for Cmd+C simulation (get selected text)
 
 ## StoreKit Products
 
